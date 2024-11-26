@@ -1,0 +1,15 @@
+targets:
+  $default:
+    builders:
+      source_gen|combining_builder:
+        options:
+          build_extensions:
+            "lib/{{dir}}/{{file}}.dart": "lib/generated/{{dir}}/{{file}}.g.dart"
+      mockito|mockBuilder:
+        generate_for:
+          - lib/**.dart
+          - test/**.dart
+        options:
+          build_extensions:
+            "lib/{{}}.dart": "lib/__mock__/{{}}.mocks.dart"
+

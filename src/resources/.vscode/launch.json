@@ -1,0 +1,80 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Own Develop build in windows",
+			"request": "launch",
+			"type": "dart",
+			"program": "lib/main_own.dart",
+			"args": ["--debug", "--dart-define-from-file=flavor/dev.env"]
+		},
+		{
+			"name": "Own Develop build in web",
+			"request": "launch",
+			"type": "dart",
+			"program": "lib/main_own.dart",
+			"args": [
+				"--debug",
+				"--dart-define-from-file=flavor/dev.env",
+				"--web-port",
+				"5555",
+				"--web-header=Cross-Origin-Opener-Policy=same-origin",
+				"--web-header=Cross-Origin-Embedder-Policy=require-corp"
+			]
+		},
+		{
+			"name": "Develop build in web",
+			"request": "launch",
+			"type": "dart",
+			"program": "lib/main_dev.dart",
+			"args": [
+				"--debug",
+				"--dart-define-from-file=flavor/dev.env",
+				"--web-port",
+				"5555",
+				"--web-header=Cross-Origin-Opener-Policy=same-origin",
+				"--web-header=Cross-Origin-Embedder-Policy=require-corp"
+			]
+		},
+		{
+			"name": "Develop build in windows",
+			"request": "launch",
+			"type": "dart",
+			"program": "lib/main_dev.dart",
+			"args": ["--debug", "--dart-define-from-file=flavor/dev.env"]
+		},
+		{
+			"name": "Run Test File",
+			"type": "dart",
+			"request": "launch",
+			"program": "${file}"
+		},
+		{
+			"name": "Release build",
+			"request": "launch",
+			"type": "dart",
+			"flutterMode": "profile",
+			"args": [
+				"--web-port",
+				"5555",
+				"--dart-define-from-file=flavor/prod.env",
+				"--web-header=Cross-Origin-Opener-Policy=same-origin",
+				"--web-header=Cross-Origin-Embedder-Policy=require-corp"
+			]
+		},
+		{
+			"name": "Release build with dev env",
+			"request": "launch",
+			"type": "dart",
+			"program": "lib/main_dev.dart",
+			"args": [
+				"--release",
+				"--web-port",
+				"5555",
+				"--dart-define-from-file=flavor/dev.env",
+				"--web-header=Cross-Origin-Opener-Policy=same-origin",
+				"--web-header=Cross-Origin-Embedder-Policy=require-corp"
+			]
+		}
+	]
+}
