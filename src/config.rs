@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
+use std::path::PathBuf;
+
+use crate::utils::input_yes;
 
 #[derive(Deserialize, Serialize)]
 pub(crate) struct Config {
@@ -60,7 +63,25 @@ pub(crate) struct RoutePath {
     pub(crate) children: Option<Vec<RouteType>>,
 }
 
-pub(crate) fn generate_sample_config(file_name: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn generate_sample_config(
+    file_name: &str,
+    delete_all_conflict_file: bool,
+    ignore_all_conflict_file: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let path_buf = PathBuf::from(file_name);
+    if path_buf.exists() {
+        if ignore_all_conflict_file {
+            return Ok(());
+        }
+        if !delete_all_conflict_file
+            && !input_yes(&format!(
+                "{} file is exist. Do you want to overwrite it? (y/N)",
+                file_name,
+            ))
+        {
+            return Ok(());
+        }
+    }
     let config = Config {
         use_case_config: UseCaseConfig {
             use_cases: vec![

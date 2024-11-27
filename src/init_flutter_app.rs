@@ -4,9 +4,7 @@ use std::path::PathBuf;
 
 use colored::Colorize;
 
-use crate::config::generate_sample_config;
-use crate::utils::input_yes;
-use crate::TARGET_FILE_NAME;
+use crate::utils::{create_dir, input_yes};
 
 const ANALYSIS_OPTIONS_YAML: &[u8] = include_bytes!("resources/analysis_options.yaml");
 const L10N_YAML: &[u8] = include_bytes!("resources/l10n.yaml");
@@ -50,9 +48,31 @@ pub(crate) fn init_flutter_app(overwrite_all: bool) -> Result<(), Box<dyn std::e
     for gen_config in gen_configs {
         generate_file(overwrite_all, gen_config.file_path_name, gen_config.bytes)?;
     }
-    match generate_sample_config(TARGET_FILE_NAME) {
-        Ok(_) => println!("{}", "generate config file successfully.".green()),
-        Err(_) => println!("{}", "failed to generate config file.".red()),
+
+    let ddd_architecture_directories = vec![
+        "lib/widget/components/",
+        "lib/widget/page/",
+        "lib/widget/theme/",
+        "lib/provider/notifier/",
+        "lib/provider/state/",
+        "lib/navigation/",
+        "lib/l10n/",
+        "lib/infrastructure/repository_impl/",
+        "lib/infrastructure/service_impl/",
+        "lib/infrastructure/query_use_case_impl/",
+        "lib/domain/entity/",
+        "lib/domain/exception/",
+        "lib/domain/repository/",
+        "lib/domain/service/",
+        "lib/common/extension/",
+        "lib/common/utils/",
+        "lib/application/use_case/",
+        "lib/application/command_use_case_impl/",
+        "lib/__mock__/",
+        "middleware/",
+    ];
+    for ddd_dir in ddd_architecture_directories {
+        create_dir(ddd_dir)?;
     }
 
     println!("{}", "completed!".green());
@@ -81,7 +101,7 @@ pub(crate) fn init_flutter_app(overwrite_all: bool) -> Result<(), Box<dyn std::e
 }
 
 fn generate_file(
-    overwrite_all: bool,
+    overwrite: bool,
     file_path_name: &str,
     bytes: &[u8],
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -90,20 +110,19 @@ fn generate_file(
     if !parent.exists() {
         fs::create_dir_all(parent.to_str().unwrap())?;
     }
-    if !path_buf.exists() {
-        if overwrite_all
-            || input_yes(&format!(
+    if overwrite {
+        let mut file = File::create(file_path_name)?;
+        file.write_all(bytes)?;
+        file.flush()?;
+        return Ok(());
+    }
+    if !path_buf.exists()
+        || (path_buf.exists()
+            && input_yes(&format!(
                 "{} file is exist. Do you want to overwrite it? (y/N)",
                 file_path_name
-            ))
-        {
-            let mut file = File::create(file_path_name)?;
-            file.write_all(bytes)?;
-            file.flush()?;
-        } else {
-            println!("passed {}", file_path_name);
-        }
-    } else {
+            )))
+    {
         let mut file = File::create(file_path_name)?;
         file.write_all(bytes)?;
         file.flush()?;

@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand};
 mod config;
 mod flutter;
 mod init_flutter_app;
@@ -11,17 +11,35 @@ use std::path::Path;
 #[command(version, about, flatten_help = true)]
 struct Args {
     #[command(subcommand)]
-    mode: Mode,
+    gen_type: GenType,
 }
 
 #[derive(Subcommand, Debug, Clone)]
-enum Mode {
+enum GenType {
+    Flutter {
+        #[command(subcommand)]
+        mode: FlutterMode,
+    },
+    Terraform {
+        #[command(subcommand)]
+        mode: TerraformMode,
+    },
+    Python,
+}
+
+#[derive(Subcommand, Debug, Clone)]
+enum FlutterMode {
     Init {
         #[arg(short)]
         overwrite_all: bool,
     },
+    Config {
+        #[arg(short)]
+        delete_conflict_config_file: bool,
+        #[arg(short)]
+        ignore_conflict_config_file: bool,
+    },
     Gen {
-        gen_type: GenType,
         #[arg(short)]
         delete_all_conflict_file: bool,
         #[arg(short)]
@@ -29,11 +47,11 @@ enum Mode {
     },
 }
 
-#[derive(Debug, Clone, ValueEnum)]
-enum GenType {
-    Flutter,
-    Terraform,
-    Python,
+#[derive(Subcommand, Debug, Clone)]
+enum TerraformMode {
+    Init,
+    Config,
+    Gen,
 }
 
 static TARGET_FILE_NAME: &str = "my_flutter_config.yaml";
@@ -44,21 +62,38 @@ fn main() {
         println!("{}", "pubspec.yaml is not found.".red());
         return;
     }
-    let result = match Args::parse().mode {
-        Mode::Gen {
-            gen_type,
-            delete_all_conflict_file,
-            ignore_all_conflict_file,
-        } => match gen_type {
-            GenType::Flutter => flutter::flutter_template::generate_files(
+    let args = Args::parse();
+    let result = match args.gen_type {
+        GenType::Flutter { mode } => match mode {
+            FlutterMode::Init { overwrite_all } => {
+                init_flutter_app::init_flutter_app(overwrite_all)
+            }
+            FlutterMode::Config {
+                delete_conflict_config_file,
+                ignore_conflict_config_file,
+            } => config::generate_sample_config(
+                TARGET_FILE_NAME,
+                delete_conflict_config_file,
+                ignore_conflict_config_file,
+            ),
+            FlutterMode::Gen {
+                delete_all_conflict_file,
+                ignore_all_conflict_file,
+            } => flutter::flutter_template::generate_files(
                 TARGET_FILE_NAME,
                 delete_all_conflict_file,
                 ignore_all_conflict_file,
             ),
-            GenType::Terraform => Ok(()),
-            GenType::Python => Ok(()),
         },
-        Mode::Init { overwrite_all } => init_flutter_app::init_flutter_app(overwrite_all),
+        GenType::Terraform { mode } => {
+            match mode {
+                TerraformMode::Init => println!("terraform init"),
+                TerraformMode::Config => println!("terraform config"),
+                TerraformMode::Gen => println!("terraform gen"),
+            };
+            Ok(())
+        }
+        GenType::Python => Ok(()),
     };
     match result {
         Ok(_) => println!("{}", "done".green()),

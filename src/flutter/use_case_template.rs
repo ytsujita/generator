@@ -46,6 +46,7 @@ pub(super) fn generate_use_case(
             is_future_call: false,
             exceptions: &exceptions.iter().collect(),
         };
+        create_dir("lib/application/use_case").unwrap();
         let render_result = use_case_template.render().unwrap();
         let file_name = &format!(
             "lib/application/use_case/{}.dart",
@@ -60,34 +61,29 @@ pub(super) fn generate_use_case(
                     create_dir(path).unwrap()
                 }
             } else {
-                println!("Invalid path: {}", &file_name);
+                println!("Invalid path: {:?}", v);
             }
         };
-
-        if !use_case_file_path.is_file() {
-            if ignore_all_conflict_file {
-                continue;
-            }
-            if delete_all_conflict_file {
-                let mut file = File::create(file_name)?;
-                file.write_all(render_result.as_bytes())?;
-                file.flush()?;
-                continue;
-            }
-            if input_yes(&format!(
-                "found file: {}, Do you want to overwrite it? (y/N)",
-                use_case.name,
-            )) {
-                let mut file = File::create(file_name)?;
-                file.write_all(render_result.as_bytes())?;
-                file.flush()?;
-            } else {
-                continue;
-            }
+        if ignore_all_conflict_file {
+            continue;
         }
-        let mut file = File::create(file_name)?;
-        file.write_all(render_result.as_bytes())?;
-        file.flush()?;
+        if delete_all_conflict_file {
+            let mut file = File::create(file_name)?;
+            file.write_all(render_result.as_bytes())?;
+            file.flush()?;
+            continue;
+        }
+        if !use_case_file_path.exists()
+            || (use_case_file_path.exists()
+                && input_yes(&format!(
+                    "found file: {}, Do you want to overwrite it? (y/N)",
+                    file_name,
+                )))
+        {
+            let mut file = File::create(file_name)?;
+            file.write_all(render_result.as_bytes())?;
+            file.flush()?;
+        }
     }
     Ok(())
 }

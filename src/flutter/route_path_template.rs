@@ -117,26 +117,25 @@ pub(super) fn generate_route_path(
             println!("Invalid path: {:?}", v);
         }
     };
-    if !route_path_file_path.is_file() {
-        if ignore_all_conflict_file {
-            return Ok(());
-        }
-        if delete_all_conflict_file {
-            let mut file = File::create(file_name)?;
-            file.write_all(render_result.as_bytes())?;
-            file.flush()?;
-            return Ok(());
-        }
-        if input_yes(&format!(
-            "found file: {}, Do you want to overwrite it? (y/N)",
-            file_name,
-        )) {
-            let mut file = File::create(file_name)?;
-            file.write_all(render_result.as_bytes())?;
-            file.flush()?;
-        } else {
-            return Ok(());
-        }
+    if ignore_all_conflict_file {
+        return Ok(());
+    }
+    if delete_all_conflict_file {
+        let mut file = File::create(file_name)?;
+        file.write_all(render_result.as_bytes())?;
+        file.flush()?;
+        return Ok(());
+    }
+    if !route_path_file_path.exists()
+        || (route_path_file_path.exists()
+            && input_yes(&format!(
+                "found file: {}, Do you want to overwrite it? (y/N)",
+                file_name,
+            )))
+    {
+        let mut file = File::create(file_name)?;
+        file.write_all(render_result.as_bytes())?;
+        file.flush()?;
     }
     Ok(())
 }
