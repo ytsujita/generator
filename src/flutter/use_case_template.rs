@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
-use crate::config::UseCaseConfig;
+use crate::flutter::config::UseCaseConfig;
 use crate::utils::{create_dir, input_yes};
 use askama::Template;
 use change_case::lower_case;
@@ -76,7 +76,7 @@ pub(super) fn generate_use_case(
         if !use_case_file_path.exists()
             || (use_case_file_path.exists()
                 && input_yes(&format!(
-                    "found file: {}, Do you want to overwrite it? (y/N)",
+                    "found file: {}, Do you want to overwrite it?",
                     file_name,
                 )))
         {

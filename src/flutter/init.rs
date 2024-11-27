@@ -1,24 +1,25 @@
-use std::fs::{self, File};
-use std::io::Write;
-use std::path::PathBuf;
-
 use colored::Colorize;
 
-use crate::utils::{create_dir, input_yes};
+use crate::utils::{create_dir, create_file, CreateFileType};
 
-const ANALYSIS_OPTIONS_YAML: &[u8] = include_bytes!("resources/analysis_options.yaml");
-const L10N_YAML: &[u8] = include_bytes!("resources/l10n.yaml");
-const BUILD_YAML: &[u8] = include_bytes!("resources/build.yaml");
-const VSCODE_LAUNCH_JSON: &[u8] = include_bytes!("resources/.vscode/launch.json");
-const VSCODE_SETTINGS_JSON: &[u8] = include_bytes!("resources/.vscode/settings.json");
-const FLAVOR_ENV_FILE: &[u8] = include_bytes!("resources/flavor/.env.sample");
+const ANALYSIS_OPTIONS_YAML: &[u8] =
+    include_bytes!("../../resources/flutter/analysis_options.yaml");
+const L10N_YAML: &[u8] = include_bytes!("../../resources/flutter/l10n.yaml");
+const BUILD_YAML: &[u8] = include_bytes!("../../resources/flutter/build.yaml");
+const VSCODE_LAUNCH_JSON: &[u8] = include_bytes!("../../resources/flutter/.vscode/launch.json");
+const VSCODE_SETTINGS_JSON: &[u8] = include_bytes!("../../resources/flutter/.vscode/settings.json");
+const FLAVOR_ENV_FILE: &[u8] = include_bytes!("../../resources/flutter/flavor/.env.sample");
+const MIDDLEWARE: &[u8] = include_bytes!("../../resources/flutter/middleware/shelf_server.dart");
 
 struct GenConfig<'a> {
     bytes: &'a [u8],
     file_path_name: &'a str,
 }
 
-pub(crate) fn init_flutter_app(overwrite_all: bool) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn init_flutter_app(
+    overwrite_all: bool,
+    ignore_conflict_config_file: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
     let gen_configs: Vec<GenConfig> = vec![
         GenConfig {
             file_path_name: "build.yaml",
@@ -44,9 +45,18 @@ pub(crate) fn init_flutter_app(overwrite_all: bool) -> Result<(), Box<dyn std::e
             file_path_name: "flavor/.env.sample",
             bytes: FLAVOR_ENV_FILE,
         },
+        GenConfig {
+            file_path_name: "middleware/shelf_server.dart",
+            bytes: MIDDLEWARE,
+        },
     ];
     for gen_config in gen_configs {
-        generate_file(overwrite_all, gen_config.file_path_name, gen_config.bytes)?;
+        generate_file(
+            overwrite_all,
+            ignore_conflict_config_file,
+            gen_config.file_path_name,
+            gen_config.bytes,
+        )?;
     }
 
     let ddd_architecture_directories = vec![
@@ -96,36 +106,22 @@ pub(crate) fn init_flutter_app(overwrite_all: bool) -> Result<(), Box<dyn std::e
         "dev:rename_app",
         "dev:source_gen",
     ];
-    println!("> flutter pub add {}", args.join(" "));
+    println!("flutter pub add {}", args.join(" "));
     Ok(())
 }
 
 fn generate_file(
     overwrite: bool,
+    ignore_conflict_config_file: bool,
     file_path_name: &str,
     bytes: &[u8],
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let path_buf = PathBuf::from(file_path_name);
-    let parent = path_buf.parent().unwrap();
-    if !parent.exists() {
-        fs::create_dir_all(parent.to_str().unwrap())?;
-    }
+    let mut create_file_type = CreateFileType::None;
     if overwrite {
-        let mut file = File::create(file_path_name)?;
-        file.write_all(bytes)?;
-        file.flush()?;
-        return Ok(());
+        create_file_type = CreateFileType::Overwrite;
     }
-    if !path_buf.exists()
-        || (path_buf.exists()
-            && input_yes(&format!(
-                "{} file is exist. Do you want to overwrite it? (y/N)",
-                file_path_name
-            )))
-    {
-        let mut file = File::create(file_path_name)?;
-        file.write_all(bytes)?;
-        file.flush()?;
+    if ignore_conflict_config_file {
+        create_file_type = CreateFileType::SkipConflict;
     }
-    Ok(())
+    create_file(file_path_name, bytes, create_file_type)
 }

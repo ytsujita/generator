@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
-use crate::config::{RoutePath, RoutePathConfig, RouteType, ShellRoutePath};
+use crate::flutter::config::{RoutePath, RoutePathConfig, RouteType, ShellRoutePath};
 use crate::utils::{create_dir, input_yes};
 use askama::Template;
 
@@ -129,7 +129,7 @@ pub(super) fn generate_route_path(
     if !route_path_file_path.exists()
         || (route_path_file_path.exists()
             && input_yes(&format!(
-                "found file: {}, Do you want to overwrite it? (y/N)",
+                "found file: {}, Do you want to overwrite it?",
                 file_name,
             )))
     {

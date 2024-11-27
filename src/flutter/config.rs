@@ -75,7 +75,7 @@ pub(crate) fn generate_sample_config(
         }
         if !delete_all_conflict_file
             && !input_yes(&format!(
-                "{} file is exist. Do you want to overwrite it? (y/N)",
+                "{} file is exist. Do you want to overwrite it?",
                 file_name,
             ))
         {
