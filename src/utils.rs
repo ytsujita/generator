@@ -1,7 +1,65 @@
-use std::{fs, io, path::PathBuf};
+use std::fs::{self, File};
+use std::io::{self, Write};
+use std::path::PathBuf;
+
+pub(crate) enum CreateFileType {
+    Overwrite,
+    SkipConflict,
+    None,
+}
+
+pub(crate) fn create_file(
+    file_path_name: &str,
+    bytes: &[u8],
+    create_file_type: CreateFileType,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let path_buf = PathBuf::from(file_path_name);
+    let parent = path_buf.parent().unwrap();
+    if !parent.exists() {
+        fs::create_dir_all(parent.to_str().unwrap())?;
+    }
+
+    match create_file_type {
+        CreateFileType::Overwrite => {
+            let mut file = File::create(file_path_name)?;
+            file.write_all(bytes)?;
+            file.flush()?;
+            Ok(())
+        }
+        CreateFileType::SkipConflict => {
+            if path_buf.exists() {
+                return Ok(());
+            }
+            let mut file = File::create(file_path_name)?;
+            file.write_all(bytes)?;
+            file.flush()?;
+            Ok(())
+        }
+        CreateFileType::None => {
+            if !path_buf.exists() {
+                let mut file = File::create(file_path_name)?;
+                file.write_all(bytes)?;
+                file.flush()?;
+                return Ok(());
+            }
+            if path_buf.exists()
+                && input_yes(&format!(
+                    "{} file is exist. Do you want to overwrite it?",
+                    file_path_name
+                ))
+            {
+                let mut file = File::create(file_path_name)?;
+                file.write_all(bytes)?;
+                file.flush()?;
+            }
+            Ok(())
+        }
+    }
+}
 
 pub(crate) fn input_yes(message: &str) -> bool {
-    println!("{}", message);
+    print!("{} (y/N): ", message);
+    io::stdout().flush().unwrap();
     let mut buffer = String::new();
     io::stdin()
         .read_line(&mut buffer)

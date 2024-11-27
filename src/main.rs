@@ -1,15 +1,16 @@
 use clap::{Parser, Subcommand};
-mod config;
 mod flutter;
-mod init_flutter_app;
+mod python;
+mod terraform;
 mod utils;
 
 use colored::Colorize;
 use std::path::Path;
 
 #[derive(Parser, Debug)]
-#[command(version, about, flatten_help = true)]
+#[command(version, about, long_about = None, flatten_help = true)]
 struct Args {
+    /// Generate type
     #[command(subcommand)]
     gen_type: GenType,
 }
@@ -30,20 +31,28 @@ enum GenType {
 #[derive(Subcommand, Debug, Clone)]
 enum FlutterMode {
     Init {
+        /// Overwrite all conflict files.
         #[arg(short)]
-        overwrite_all: bool,
+        overwrite_conflict_files: bool,
+        /// Skip all conflict files.
+        #[arg(short)]
+        skip_conflict_config_files: bool,
     },
     Config {
+        /// Overwrite all conflict files.
         #[arg(short)]
-        delete_conflict_config_file: bool,
+        overwrite_conflict_file: bool,
+        /// Skip all conflict files.
         #[arg(short)]
-        ignore_conflict_config_file: bool,
+        skip_conflict_file: bool,
     },
     Gen {
+        /// Overwrite all conflict files.
         #[arg(short)]
-        delete_all_conflict_file: bool,
+        overwrite_conflict_files: bool,
+        /// Skip all conflict files.
         #[arg(short)]
-        ignore_all_conflict_file: bool,
+        skip_conflict_files: bool,
     },
 }
 
@@ -54,37 +63,39 @@ enum TerraformMode {
     Gen,
 }
 
-static TARGET_FILE_NAME: &str = "my_flutter_config.yaml";
-
 fn main() {
-    let pubspec_path = Path::new("pubspec.yaml");
-    if !pubspec_path.is_file() {
-        println!("{}", "pubspec.yaml is not found.".red());
-        return;
-    }
     let args = Args::parse();
     let result = match args.gen_type {
-        GenType::Flutter { mode } => match mode {
-            FlutterMode::Init { overwrite_all } => {
-                init_flutter_app::init_flutter_app(overwrite_all)
+        GenType::Flutter { mode } => {
+            let pubspec_path = Path::new("pubspec.yaml");
+            if !pubspec_path.is_file() {
+                println!("{}", "pubspec.yaml is not found.".red());
+                return;
             }
-            FlutterMode::Config {
-                delete_conflict_config_file,
-                ignore_conflict_config_file,
-            } => config::generate_sample_config(
-                TARGET_FILE_NAME,
-                delete_conflict_config_file,
-                ignore_conflict_config_file,
-            ),
-            FlutterMode::Gen {
-                delete_all_conflict_file,
-                ignore_all_conflict_file,
-            } => flutter::flutter_template::generate_files(
-                TARGET_FILE_NAME,
-                delete_all_conflict_file,
-                ignore_all_conflict_file,
-            ),
-        },
+            let flutter_config_file_name = "my_flutter_config.yaml";
+            match mode {
+                FlutterMode::Init {
+                    overwrite_conflict_files: overwrite_all,
+                    skip_conflict_config_files: ignore_conflict_config_file,
+                } => flutter::init::init_flutter_app(overwrite_all, ignore_conflict_config_file),
+                FlutterMode::Config {
+                    overwrite_conflict_file: delete_conflict_config_file,
+                    skip_conflict_file: ignore_conflict_config_file,
+                } => flutter::config::generate_sample_config(
+                    flutter_config_file_name,
+                    delete_conflict_config_file,
+                    ignore_conflict_config_file,
+                ),
+                FlutterMode::Gen {
+                    overwrite_conflict_files: delete_all_conflict_file,
+                    skip_conflict_files: ignore_all_conflict_file,
+                } => flutter::template::generate_files(
+                    flutter_config_file_name,
+                    delete_all_conflict_file,
+                    ignore_all_conflict_file,
+                ),
+            }
+        }
         GenType::Terraform { mode } => {
             match mode {
                 TerraformMode::Init => println!("terraform init"),
