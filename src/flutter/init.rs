@@ -1,15 +1,24 @@
-use colored::Colorize;
+use std::fs::File;
+use std::io::Write;
+use std::path::PathBuf;
+use std::str::FromStr;
+use std::{fs, path::Path};
 
-use crate::utils::{create_dir, create_file, CreateFileType};
+use colored::Colorize;
+use include_dir::{include_dir, Dir};
+use serde::{Deserialize, Serialize};
+
+use crate::flutter::config::generate_sample_config;
+use crate::utils::create_file;
 
 const ANALYSIS_OPTIONS_YAML: &[u8] =
     include_bytes!("../../resources/flutter/analysis_options.yaml");
-const L10N_YAML: &[u8] = include_bytes!("../../resources/flutter/l10n.yaml");
 const BUILD_YAML: &[u8] = include_bytes!("../../resources/flutter/build.yaml");
 const VSCODE_LAUNCH_JSON: &[u8] = include_bytes!("../../resources/flutter/.vscode/launch.json");
 const VSCODE_SETTINGS_JSON: &[u8] = include_bytes!("../../resources/flutter/.vscode/settings.json");
 const FLAVOR_ENV_FILE: &[u8] = include_bytes!("../../resources/flutter/flavor/.env.sample");
 const MIDDLEWARE: &[u8] = include_bytes!("../../resources/flutter/middleware/shelf_server.dart");
+const EDITOR_CONFIG: &[u8] = include_bytes!("../../resources/flutter/.editorconfig");
 
 struct GenConfig<'a> {
     bytes: &'a [u8],
@@ -17,73 +26,17 @@ struct GenConfig<'a> {
 }
 
 pub(crate) fn init_flutter_app(
-    overwrite_all: bool,
-    ignore_conflict_config_file: bool,
+    file_name: &str,
+    overwrite_conflict_files: bool,
+    skip_conflict_files: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let gen_configs: Vec<GenConfig> = vec![
-        GenConfig {
-            file_path_name: "build.yaml",
-            bytes: BUILD_YAML,
-        },
-        GenConfig {
-            file_path_name: "analysis_options.yaml",
-            bytes: ANALYSIS_OPTIONS_YAML,
-        },
-        GenConfig {
-            file_path_name: "l10n.yaml",
-            bytes: L10N_YAML,
-        },
-        GenConfig {
-            file_path_name: ".vscode/launch.json",
-            bytes: VSCODE_LAUNCH_JSON,
-        },
-        GenConfig {
-            file_path_name: ".vscode/settings.json",
-            bytes: VSCODE_SETTINGS_JSON,
-        },
-        GenConfig {
-            file_path_name: "flavor/.env.sample",
-            bytes: FLAVOR_ENV_FILE,
-        },
-        GenConfig {
-            file_path_name: "middleware/shelf_server.dart",
-            bytes: MIDDLEWARE,
-        },
-    ];
-    for gen_config in gen_configs {
-        generate_file(
-            overwrite_all,
-            ignore_conflict_config_file,
-            gen_config.file_path_name,
-            gen_config.bytes,
-        )?;
-    }
-
-    let ddd_architecture_directories = vec![
-        "lib/widget/components/",
-        "lib/widget/page/",
-        "lib/widget/theme/",
-        "lib/provider/notifier/",
-        "lib/provider/state/",
-        "lib/navigation/",
-        "lib/l10n/",
-        "lib/infrastructure/repository_impl/",
-        "lib/infrastructure/service_impl/",
-        "lib/infrastructure/query_use_case_impl/",
-        "lib/domain/entity/",
-        "lib/domain/exception/",
-        "lib/domain/repository/",
-        "lib/domain/service/",
-        "lib/common/extension/",
-        "lib/common/utils/",
-        "lib/application/use_case/",
-        "lib/application/command_use_case_impl/",
-        "lib/__mock__/",
-        "middleware/",
-    ];
-    for ddd_dir in ddd_architecture_directories {
-        create_dir(ddd_dir)?;
-    }
+    copy_dir_recursive(
+        Path::new("./"),
+        overwrite_conflict_files,
+        skip_conflict_files,
+    )?;
+    edit_pubspec_yaml()?;
+    generate_sample_config(file_name, overwrite_conflict_files, skip_conflict_files)?;
 
     println!("{}", "completed!".green());
     println!("{}", "Please run below commands!".green());
@@ -110,18 +63,126 @@ pub(crate) fn init_flutter_app(
     Ok(())
 }
 
-fn generate_file(
-    overwrite: bool,
+static SRC_DIR: Dir = include_dir!("resources/flutter/");
+
+fn copy_dir_recursive(
+    dst: &Path,
+    overwrite_all: bool,
     ignore_conflict_config_file: bool,
-    file_path_name: &str,
-    bytes: &[u8],
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut create_file_type = CreateFileType::None;
-    if overwrite {
-        create_file_type = CreateFileType::Overwrite;
+    let gen_configs: Vec<GenConfig> = vec![
+        GenConfig {
+            file_path_name: "build.yaml",
+            bytes: BUILD_YAML,
+        },
+        GenConfig {
+            file_path_name: "analysis_options.yaml",
+            bytes: ANALYSIS_OPTIONS_YAML,
+        },
+        GenConfig {
+            file_path_name: ".vscode/launch.json",
+            bytes: VSCODE_LAUNCH_JSON,
+        },
+        GenConfig {
+            file_path_name: ".vscode/settings.json",
+            bytes: VSCODE_SETTINGS_JSON,
+        },
+        GenConfig {
+            file_path_name: "flavor/.env.sample",
+            bytes: FLAVOR_ENV_FILE,
+        },
+        GenConfig {
+            file_path_name: "flavor/dev.env",
+            bytes: FLAVOR_ENV_FILE,
+        },
+        GenConfig {
+            file_path_name: "flavor/test.env",
+            bytes: FLAVOR_ENV_FILE,
+        },
+        GenConfig {
+            file_path_name: "flavor/prod.env",
+            bytes: FLAVOR_ENV_FILE,
+        },
+        GenConfig {
+            file_path_name: "middleware/shelf_server.dart",
+            bytes: MIDDLEWARE,
+        },
+        GenConfig {
+            file_path_name: ".editorconfig",
+            bytes: EDITOR_CONFIG,
+        },
+    ];
+    for gen_config in gen_configs {
+        create_file(
+            gen_config.file_path_name,
+            gen_config.bytes,
+            overwrite_all,
+            ignore_conflict_config_file,
+        )?;
     }
-    if ignore_conflict_config_file {
-        create_file_type = CreateFileType::SkipConflict;
+    if !dst.exists() {
+        fs::create_dir(dst)?;
     }
-    create_file(file_path_name, bytes, create_file_type)
+    let glob = "**/*";
+    for file in SRC_DIR.find(glob).unwrap() {
+        println!("{:?}", file);
+        let dst_path = dst.join(file.path());
+        match file {
+            include_dir::DirEntry::Dir(d) => {
+                fs::create_dir_all(d.path().as_os_str().to_str().unwrap()).unwrap();
+            }
+            include_dir::DirEntry::File(f) => {
+                let file_path = f.path().as_os_str().to_str().unwrap();
+                let file_buf: PathBuf = PathBuf::from_str(file_path)?;
+                if let Some(parent) = file_buf.parent() {
+                    if !parent.exists() {
+                        fs::create_dir_all(parent)?;
+                    }
+                }
+                let _ = create_file(
+                    dst_path.as_os_str().to_str().unwrap(),
+                    f.contents(),
+                    overwrite_all,
+                    ignore_conflict_config_file,
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
+fn edit_pubspec_yaml() -> Result<(), Box<dyn std::error::Error>> {
+    let pubspec_yaml_file_str = fs::read_to_string("pubspec.yaml")?;
+    let mut pubspec_yaml: PubspecYaml = serde_yaml::from_str(&pubspec_yaml_file_str).unwrap();
+    pubspec_yaml.flutter.insert("generate", Value::Bool(true));
+    let mut file = File::create("pubspec.yaml")?;
+    let config_str = serde_yaml::to_string(&pubspec_yaml).unwrap();
+    file.write_all(config_str.as_bytes())?;
+    file.flush()?;
+    Ok(())
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(untagged)]
+enum Value<'a> {
+    Str(&'a str),
+    Bool(bool),
+    HashMap(std::collections::HashMap<&'a str, Value<'a>>),
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct PubspecYaml<'a> {
+    pub(crate) name: &'a str,
+    pub(crate) description: &'a str,
+    pub(crate) publish_to: &'a str,
+    pub(crate) version: &'a str,
+    pub(crate) environment: Environment<'a>,
+    pub(crate) dependencies: std::collections::HashMap<&'a str, Value<'a>>,
+    pub(crate) dev_dependencies: std::collections::HashMap<&'a str, Value<'a>>,
+    pub(crate) flutter: std::collections::HashMap<&'a str, Value<'a>>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Environment<'a> {
+    sdk: &'a str,
 }

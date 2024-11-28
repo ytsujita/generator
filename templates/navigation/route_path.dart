@@ -1,14 +1,33 @@
 import 'package:flutter/material.dart';
 
+{%- for route_path in route_paths -%}
+{%- match route_path.dir_name -%}
+{%- when Some with (dir) %}
+import '../widget/page/{{ dir|snake }}/{{ route_path.name|snake }}.dart';
+{%- when None -%}
+import '../widget/page/{{ route_path.name|snake }}.dart';
+{%- endmatch -%}
+{% endfor %}
+{%- for route_path in shell_route_paths -%}
+{%- match route_path.dir_name -%}
+{%- when Some with (dir) %}
+import '../widget/page/{{ dir|snake }}/{{ route_path.name|snake }}.dart';
+{%- when None -%}
+import '../widget/page/{{ route_path.name|snake }}.dart';
+{%- endmatch -%}
+{% endfor %}
+
+
+
 sealed class BaseRoutePath {
   const BaseRoutePath();
 }
 
-sealed class ShellRoutePath extends BaseRoutePath {
+sealed class ShellRoutePath<T> extends BaseRoutePath {
   const ShellRoutePath({
     required this.pathStack,
   });
-  final List<BaseRoutePath> pathStack;
+  final Map<T, List<BaseRoutePath>> pathStack;
   Page<dynamic> buildPage();
 }
 
@@ -42,7 +61,7 @@ enum {{ shell_route_path.name }}ShellIndex {
   ;
 }
 
-class {{ shell_route_path.name }}ShellRoutePath extends ShellRoutePath {
+class {{ shell_route_path.name }}ShellRoutePath extends ShellRoutePath<{{ shell_route_path.name }}ShellIndex> {
   const {{ shell_route_path.name }}ShellRoutePath({
     required super.pathStack,
     required this.selectedIndex,
@@ -51,7 +70,7 @@ class {{ shell_route_path.name }}ShellRoutePath extends ShellRoutePath {
 
   @override
   Page<dynamic> buildPage() {
-    return const MaterialPage(
+    return MaterialPage(
       child: {{ shell_route_path.name }}Widget(
         selectedIndex: selectedIndex,
         pathStack: pathStack,

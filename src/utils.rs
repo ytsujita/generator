@@ -2,7 +2,8 @@ use std::fs::{self, File};
 use std::io::{self, Write};
 use std::path::PathBuf;
 
-pub(crate) enum CreateFileType {
+#[derive(Clone)]
+enum CreateFileType {
     Overwrite,
     SkipConflict,
     None,
@@ -11,12 +12,20 @@ pub(crate) enum CreateFileType {
 pub(crate) fn create_file(
     file_path_name: &str,
     bytes: &[u8],
-    create_file_type: CreateFileType,
+    overwrite_conflict: bool,
+    skip_conflict: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let path_buf = PathBuf::from(file_path_name);
     let parent = path_buf.parent().unwrap();
     if !parent.exists() {
         fs::create_dir_all(parent.to_str().unwrap())?;
+    }
+    let mut create_file_type = CreateFileType::None;
+    if overwrite_conflict {
+        create_file_type = CreateFileType::Overwrite;
+    }
+    if skip_conflict {
+        create_file_type = CreateFileType::SkipConflict;
     }
 
     match create_file_type {

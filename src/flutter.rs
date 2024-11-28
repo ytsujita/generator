@@ -1,5 +1,7 @@
 pub mod config;
 pub mod init;
-pub mod route_path_template;
 pub mod template;
-pub mod use_case_template;
+pub mod template_navigation;
+pub mod template_provider;
+pub mod template_use_case;
+pub mod template_widget;

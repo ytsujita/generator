@@ -1,0 +1,53 @@
+{
+  "@@locale": "ja",
+  "signOut": "サインアウト",
+  "confirmMessage": "{action}します。よろしいですか？",
+  "@confirmMessage": {
+    "placeholders": {
+      "action": {
+        "description": "Action to be confirmed"
+      }
+    }
+  },
+  "generatorConfig": "ジェネレータ設定",
+  "cancel": "キャンセル",
+  "foldMenu": "メニューを折りたたむ",
+  "expandMenu": "メニューを開く",
+  "loading": "読み込み中",
+  "email": "メールアドレス",
+  "password": "パスワード",
+  "tmpPassword": "仮パスワード",
+  "newPassword": "新しいパスワード",
+  "confirmNewPassword": "新しいパスワード (確認用)",
+  "validateAccount": "アカウントの検証",
+  "resetPassword": "パスワードのリセット・変更",
+  "backToSignInPage": "サインインページに戻る",
+  "verifyCode": "検証コード",
+  "sendVerifyCode": "検証コードを送信",
+  "verifyEmail": "メールアドレスの検証",
+  "verifyEmailMessage": "メールアドレスの検証を行います。\n新しいメールアドレス宛に送付された検証用コードを入力してください。\n検証が完了するまで、新しいメールアドレスを使用できません。",
+  "sendVerifyCodeForResetPasswordMessage": "パスワードリセット用の検証コードをメールアドレスに送信します。",
+  "successVerifyEmailMessage": "メールアドレスの検証が完了しました。",
+  "signIn": "サインイン",
+  "reSignIn": "再サインイン",
+  "@reSignIn": {},
+  "sessionTimeout": "セッションタイムアウト",
+  "@sessionTimeout": {},
+  "validateAccountMessage": "アカウントを検証します。\nメールアドレスに送付されたユーザーIDと仮パスワード、新しいパスワードを入力してください。",
+  "emailValidatorErrorMessage": "有効なメールアドレスを入力してください。",
+  "passwordValidatorErrorMessage": "パスワードを入力してください。",
+  "tmpPasswordValidatorErrorMessage": "仮パスワードを入力してください。",
+  "newPasswordValidatorErrorMessage": "新しいパスワードを入力してください。\n8文字以上半角英字,数字,記号を含む文字列を入力してください。",
+  "confirmNewPasswordValidatorErrorMessage": "新しいパスワードと確認用のパスワードが一致しません。",
+  "verifyCodeValidatorErrorMessage": "検証コードを入力してください。",
+  "internalServerErrorMessage": "サーバーエラーが発生しました。",
+  "invalidEmailOrPasswordErrorMessage": "メールアドレスまたはパスワードが正しくありません。",
+  "invalidEmailOrTmpPasswordErrorMessage": "メールアドレスまたは仮パスワードが正しくありません。",
+  "unknownErrorMessage": "予期しないエラーが発生しました。",
+  "invalidNewPasswordErrorMessage": "新しいパスワードが正しくありません。\n8文字以上半角英字,数字,記号を含む文字列を入力してください。",
+  "networkNotAvailableMessage": "ネットワークが利用できません。接続を確認してください。",
+  "expiredOTPErrorMessage": "検証コードが有効期限切れです。",
+  "invalidOTPErrorMessage": "検証コードが正しくありません。",
+  "successResetPasswordMessage": "パスワードがリセットされました。",
+  "accountNotRegisteredErrorMessage": "アカウントが登録されていません。"
+}

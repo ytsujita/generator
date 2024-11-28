@@ -1,6 +1,5 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../provider/notifier/auth/sign_in_user_provider.dart';
 import 'navigation_state.dart';
 import 'route_path.dart';
 
@@ -11,31 +10,11 @@ final navigationStateProvider =
 );
 
 class NavigationStateNotifier extends Notifier<NavigationState> {
+
   @override
   NavigationState build() {
-    // signInUserの状態変更を監視して、その状態に応じた画面遷移状態を返す
-    // AsyncData -> AsyncData などの画面遷移の必要のない状態変化は無視するようにしている
-    ref.watch(
-      signInUserProvider.select(
-        (val) => switch (val) {
-          AsyncData(value: null) => 0,
-          AsyncData() => 1,
-          AsyncError() => 2,
-          _ => 3,
-        },
-      ),
-    );
-    return switch (ref.read(signInUserProvider)) {
-      AsyncData(value: null) =>
-        NavigationState.fromRoutePath(routePath: const SignInRoutePath()),
-      AsyncData() => NavigationState.fromRoutePath(
-          routePath: const IncidentLogSearchRoutePath(),
-        ),
-      AsyncError() =>
-        NavigationState.fromRoutePath(routePath: const SignInRoutePath()),
-      _ =>
-        NavigationState.fromRoutePath(routePath: const FetchLoadingRoutePath()),
-    };
+    return NavigationState.init();
+
   }
 
   /// 完全に画面遷移状態を置き換える
@@ -46,26 +25,11 @@ class NavigationStateNotifier extends Notifier<NavigationState> {
   }
 
   /// [RoutePath]から[NavigationState]を生成して遷移する
-  void navigate(RoutePath myRoutePath) {
+  void navigate(RoutePath routePath) {
     state = NavigationState.fromRoutePath(
-      routePath: myRoutePath,
+      routePath: routePath,
       previousState: state,
-    ).copyWith();
-  }
-
-  /// [MainTab]から[RoutePath]を生成して遷移する
-  void navigateMainTab(MainTab mainTab) {
-    final targetRoutePath = switch (mainTab) {
-      MainTab.incidentLog => const IncidentLogSearchRoutePath(),
-      MainTab.account => const AccountSearchRoutePath(),
-      MainTab.adminAccount => const AdminAccountSearchRoutePath(),
-      MainTab.group => const GroupSearchRoutePath(),
-      MainTab.groupAdminAccount => const GroupAdminAccountSearchRoutePath(),
-      MainTab.groupBelongingAccount =>
-        const GroupBelongingAccountSearchRoutePath(),
-      MainTab.monitoringAppSettings => const MonitoringAppSettingsRoutePath(),
-    };
-    navigate(targetRoutePath);
+    );
   }
 
   /// 現在の画面からポップできるページをポップする

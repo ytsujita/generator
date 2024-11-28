@@ -3,7 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../common/utils/result.dart';
 
 final {{ name|camel }}UseCaseProvider =
-    Provider.autoDispose<{{ name }}UserUseCase>(
+    Provider.autoDispose<{{ name }}UseCase>(
   (final ref) => throw UnimplementedError(),
 );
 

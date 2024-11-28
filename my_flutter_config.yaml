@@ -3,41 +3,49 @@ route_path_config:
   route_paths:
   - !RoutePath
     name: SignIn
+    dir_name: auth
     uri: /sign-in
     path_reg_exp: ^/sign-in$
     children:
     - !RoutePath
       name: SignUp
+      dir_name: auth
       uri: /sign-up
       path_reg_exp: ^/sign-up$
       children: null
     - !RoutePath
       name: ForgotPassword
+      dir_name: auth
       uri: /forgot-password
       path_reg_exp: ^/forgot-password$
       children:
       - !RoutePath
         name: ResetPassword
+        dir_name: auth
         uri: /reset-password
         path_reg_exp: ^/reset-password$
         children: null
   - !RoutePath
     name: VerifyAccount
+    dir_name: auth
     uri: /verify-account
     path_reg_exp: ^/verify-account$
     children: null
   - !RoutePath
     name: FetchLoading
+    dir_name: auth
     uri: null
     path_reg_exp: null
     children: null
   - !RoutePath
     name: SessionTimeout
+    dir_name: auth
     uri: null
     path_reg_exp: null
     children: null
   - !ShellRoute
     name: Main
+    dir_name: main
     shell_index_enum_names:
     - SampleShell1
     - SampleShell2
@@ -45,16 +53,19 @@ route_path_config:
     shells:
     - !RoutePath
       name: Sample1
+      dir_name: main
       uri: /sample1-url
       path_reg_exp: ^/sample1-url$
       children: null
     - !RoutePath
       name: Sample2
+      dir_name: main
       uri: /sample2-url
       path_reg_exp: ^/sample2-url$
       children: null
     - !RoutePath
       name: Sample3
+      dir_name: main
       uri: /sample3-url
       path_reg_exp: ^/sample3-url$
       children: null
@@ -64,6 +75,7 @@ use_case_config:
     use_case_type: Query
     return_type: SampleReturnType
     is_future_call: true
+    dir_name: auth
     exceptions:
     - name: Sample
     - name: Sample
@@ -71,6 +83,15 @@ use_case_config:
     use_case_type: Command
     return_type: SampleReturnType2
     is_future_call: false
+    dir_name: main
     exceptions:
     - name: Sample
     - name: Sample
+  - name: Sample3
+    use_case_type: Command
+    return_type: SampleReturnType3
+    is_future_call: false
+    dir_name: null
+    exceptions:
+    - name: Sample3
+    - name: Sample3

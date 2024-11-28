@@ -38,14 +38,6 @@ enum FlutterMode {
         #[arg(short)]
         skip_conflict_config_files: bool,
     },
-    Config {
-        /// Overwrite all conflict files.
-        #[arg(short)]
-        overwrite_conflict_file: bool,
-        /// Skip all conflict files.
-        #[arg(short)]
-        skip_conflict_file: bool,
-    },
     Gen {
         /// Overwrite all conflict files.
         #[arg(short)]
@@ -59,7 +51,6 @@ enum FlutterMode {
 #[derive(Subcommand, Debug, Clone)]
 enum TerraformMode {
     Init,
-    Config,
     Gen,
 }
 
@@ -75,31 +66,26 @@ fn main() {
             let flutter_config_file_name = "my_flutter_config.yaml";
             match mode {
                 FlutterMode::Init {
-                    overwrite_conflict_files: overwrite_all,
-                    skip_conflict_config_files: ignore_conflict_config_file,
-                } => flutter::init::init_flutter_app(overwrite_all, ignore_conflict_config_file),
-                FlutterMode::Config {
-                    overwrite_conflict_file: delete_conflict_config_file,
-                    skip_conflict_file: ignore_conflict_config_file,
-                } => flutter::config::generate_sample_config(
+                    overwrite_conflict_files,
+                    skip_conflict_config_files,
+                } => flutter::init::init_flutter_app(
                     flutter_config_file_name,
-                    delete_conflict_config_file,
-                    ignore_conflict_config_file,
+                    overwrite_conflict_files,
+                    skip_conflict_config_files,
                 ),
                 FlutterMode::Gen {
-                    overwrite_conflict_files: delete_all_conflict_file,
-                    skip_conflict_files: ignore_all_conflict_file,
+                    overwrite_conflict_files,
+                    skip_conflict_files,
                 } => flutter::template::generate_files(
                     flutter_config_file_name,
-                    delete_all_conflict_file,
-                    ignore_all_conflict_file,
+                    overwrite_conflict_files,
+                    skip_conflict_files,
                 ),
             }
         }
         GenType::Terraform { mode } => {
             match mode {
                 TerraformMode::Init => println!("terraform init"),
-                TerraformMode::Config => println!("terraform config"),
                 TerraformMode::Gen => println!("terraform gen"),
             };
             Ok(())

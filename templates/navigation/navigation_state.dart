@@ -12,58 +12,17 @@ enum MainTab {
 }
 
 class NavigationState {
-  const NavigationState({
-    required this.rootRoutePathStack,
-    required this.selectedTab,
-    required this.incidentLogTabRoutePathStack,
-    required this.accountTabRoutePathStack,
-    required this.adminAccountTabRoutePathStack,
-    required this.groupTabRoutePathStack,
-    required this.groupBelongingAccountTabRoutePathStack,
-    required this.groupAdminAccountTabRoutePathStack,
-    required this.settingsTabRoutePathStack,
-  });
+  const NavigationState({required this.rootRoutePathStack});
 
   factory NavigationState.fromUri({
     required Uri uri,
     NavigationState? previousState,
-    bool isAuthorized = true,
   }) {
     final routePath = RoutePath.fromUri(uri);
-    if (isAuthorized) {
-      final newState = NavigationState.fromRoutePath(
-        routePath: routePath,
-        previousState: previousState,
-      );
-      return switch (newState.currentRoutePath) {
-        SignInRoutePath() ||
-        SessionTimeoutRoutePath() ||
-        SendOtpRoutePath() ||
-        ResetPasswordRoutePath() =>
-          NavigationState.fromRoutePath(
-            routePath: const IncidentLogSearchRoutePath(),
-            previousState: previousState,
-          ),
-        _ => newState,
-      };
-    }
-    final newState = NavigationState.fromRoutePath(
-      routePath: routePath,
+    return NavigationState.fromRoutePath(
+      routePath: const SignInRoutePath(),
       previousState: previousState,
-    );
-    return switch (newState.currentRoutePath) {
-      SignInRoutePath() ||
-      SessionTimeoutRoutePath() ||
-      SendOtpRoutePath() ||
-      ResetPasswordRoutePath() ||
-      VerifyEmailRoutePath() ||
-      InitializePasswordRoutePath() =>
-        newState,
-      _ => NavigationState.fromRoutePath(
-          routePath: const SignInRoutePath(),
-          previousState: previousState,
-        ),
-    };
+    )
   }
 
   /// 特定のルート[routePath]が表示されるときのページ構成を構築する
@@ -311,134 +270,43 @@ class NavigationState {
   factory NavigationState.init() {
     return const NavigationState(
       rootRoutePathStack: [FetchLoadingRoutePath()],
-      selectedTab: MainTab.incidentLog,
-      incidentLogTabRoutePathStack: [IncidentLogSearchRoutePath()],
-      accountTabRoutePathStack: [AccountSearchRoutePath()],
-      adminAccountTabRoutePathStack: [AdminAccountSearchRoutePath()],
-      groupTabRoutePathStack: [GroupSearchRoutePath()],
-      groupAdminAccountTabRoutePathStack: [
-        GroupAdminAccountSearchRoutePath(),
-      ],
-      groupBelongingAccountTabRoutePathStack: [
-        GroupBelongingAccountSearchRoutePath(),
-      ],
-      settingsTabRoutePathStack: [MonitoringAppSettingsRoutePath()],
     );
   }
 
   // root
   final List<BaseRoutePath> rootRoutePathStack;
 
-  // main tab
-  final MainTab selectedTab;
-  final List<BaseRoutePath> incidentLogTabRoutePathStack;
-  final List<BaseRoutePath> accountTabRoutePathStack;
-  final List<BaseRoutePath> adminAccountTabRoutePathStack;
-  final List<BaseRoutePath> groupTabRoutePathStack;
-  final List<BaseRoutePath> groupBelongingAccountTabRoutePathStack;
-  final List<BaseRoutePath> groupAdminAccountTabRoutePathStack;
-  final List<BaseRoutePath> settingsTabRoutePathStack;
-
-  List<BaseRoutePath> getMainTabPathStack(MainTab mainTab) {
-    return switch (mainTab) {
-      MainTab.incidentLog => incidentLogTabRoutePathStack,
-      MainTab.account => accountTabRoutePathStack,
-      MainTab.adminAccount => adminAccountTabRoutePathStack,
-      MainTab.group => groupTabRoutePathStack,
-      MainTab.groupAdminAccount => groupAdminAccountTabRoutePathStack,
-      MainTab.groupBelongingAccount => groupBelongingAccountTabRoutePathStack,
-      MainTab.monitoringAppSettings => settingsTabRoutePathStack,
+  RoutePath _getRouteFromStack(List<RoutePath> pathStack) {
+    if (pathStack.isEmpty) {
+      throw Exception("Shellの中身を空にできません。");
+    }
+    final lastOne = pathStack.last;
+    return switch (lastOne) {
+      ShellRoutePath(:final pathStack) => _getRouteFromStack(pathStack),
+      RoutePath() => lastOne,
     };
   }
 
   RoutePath get currentRoutePath {
-    var tmp = rootRoutePathStack.last;
-    switch (tmp) {
-      case ShellRoutePath():
-        switch (tmp) {
-          case MainTabShellRoutePath():
-            tmp = getMainTabPathStack(selectedTab).last;
-            switch (tmp) {
-              case RoutePath():
-                return tmp;
-              case MainTabShellRoutePath():
-                throw Exception('MainTabShellRoutePathはネストできません。');
-            }
-          default:
-            throw Exception('Root直下にMainTabShellRoutePath以外を配置できません。');
-        }
-      case RoutePath():
-        return tmp;
-    }
+    return _getRouteFromStack(rootRoutePathStack);
   }
 
   Uri? get currentUri {
-    switch (currentRoutePath) {
-      case FetchLoadingRoutePath():
-        return null;
-      case SignInRoutePath():
-      case InitializePasswordRoutePath():
-      case SessionTimeoutRoutePath():
-      case SendOtpRoutePath():
-      case ResetPasswordRoutePath():
-      case VerifyEmailRoutePath():
-      case MonitoringAppSettingsRoutePath():
-      case AccountSearchRoutePath():
-      case AccountRegisterRoutePath():
-      case AccountImportRoutePath():
-      case AccountDetailRoutePath():
-      case AdminAccountSearchRoutePath():
-      case GroupSearchRoutePath():
-      case GroupImportRoutePath():
-      case GroupRegisterRoutePath():
-      case GroupDetailRoutePath():
-      case GroupAdminAccountSearchRoutePath():
-      case GroupAdminAccountBulkRegisterRoutePath():
-      case GroupBelongingAccountSearchRoutePath():
-      case GroupBelongingAccountBulkRegisterRoutePath():
-      case IncidentLogSearchRoutePath():
-      case AdminAccountBulkRegisterRoutePath():
-      case AdminAccountDetailRoutePath():
-        return currentRoutePath.uri;
-    }
+    return currentRoutePath.uri;
   }
 
   NavigationState copyWith({
     List<BaseRoutePath>? rootRoutePathStack,
-    MainTab? selectedTab,
-    List<BaseRoutePath>? incidentLogTabRoutePathStack,
-    List<BaseRoutePath>? accountTabRoutePathStack,
-    List<BaseRoutePath>? adminAccountTabRoutePathStack,
-    List<BaseRoutePath>? groupTabRoutePathStack,
-    List<BaseRoutePath>? groupBelongingAccountTabRoutePathStack,
-    List<BaseRoutePath>? groupAdminAccountTabRoutePathStack,
-    List<BaseRoutePath>? settingsTabRoutePathStack,
   }) {
     return NavigationState(
       rootRoutePathStack: rootRoutePathStack ?? this.rootRoutePathStack,
-      selectedTab: selectedTab ?? this.selectedTab,
-      incidentLogTabRoutePathStack:
-          incidentLogTabRoutePathStack ?? this.incidentLogTabRoutePathStack,
-      accountTabRoutePathStack:
-          accountTabRoutePathStack ?? this.accountTabRoutePathStack,
-      adminAccountTabRoutePathStack:
-          adminAccountTabRoutePathStack ?? this.adminAccountTabRoutePathStack,
-      groupTabRoutePathStack:
-          groupTabRoutePathStack ?? this.groupTabRoutePathStack,
-      groupBelongingAccountTabRoutePathStack:
-          groupBelongingAccountTabRoutePathStack ??
-              this.groupBelongingAccountTabRoutePathStack,
-      groupAdminAccountTabRoutePathStack: groupAdminAccountTabRoutePathStack ??
-          this.groupAdminAccountTabRoutePathStack,
-      settingsTabRoutePathStack:
-          settingsTabRoutePathStack ?? this.settingsTabRoutePathStack,
     );
   }
 
   NavigationState pop() {
     final tmp = rootRoutePathStack.last;
     switch (tmp) {
-      case MainTabShellRoutePath():
+      case ShellRoutePath(:final pathStack):
         switch (selectedTab) {
           case MainTab.account:
             return copyWith(

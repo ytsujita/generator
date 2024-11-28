@@ -1,4 +1,16 @@
 {
+	"files.eol": "\n",
+	"editor.formatOnSave": true,
+	"[dart]": {
+		"editor.formatOnSave": true,
+		"editor.formatOnType": true,
+		"editor.rulers": [80],
+		"editor.selectionHighlight": false,
+		"editor.suggest.snippetsPreventQuickSuggestions": false,
+		"editor.suggestSelection": "first",
+		"editor.tabCompletion": "onlySnippets",
+		"editor.wordBasedSuggestions": "off"
+	},
 	"cSpell.words": [
 		"autovalidate",
 		"bindgen",
@@ -20,5 +32,24 @@
 		"todos",
 		"unawaited",
 		"vsync"
-	]
+	],
+	"material-icon-theme.folders.associations": {
+		"navigation": "Context",
+		"acl": "connection",
+		"main": "core",
+		"__mock__": "mock",
+		"repository": "connection",
+		"repository_impl": "connection",
+		"use_case": "app",
+		"use_case_impl": "app",
+		"entity": "container",
+		"domain": "tasks",
+		"infrastructure": "base",
+		"exception": "error",
+		"application": "app",
+		"service_impl": "controller",
+		"query_use_case_impl": "app",
+		"notifier": "flutter",
+		"state": "container"
+	}
 }
