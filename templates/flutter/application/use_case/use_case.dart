@@ -1,10 +1,21 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../common/utils/result.dart';
+{%- match use_case_type -%}
+{%- when UseCaseType::Command -%}
+import '../{% for i in 0..file_nest_size -%}
+../
+{%- endfor -%}command_use_case_impl/{{ file_name }}';
+{%- when UseCaseType::Query -%}
+import '../../{% for i in 0..file_nest_size -%}
+../
+{%- endfor -%}infrastructure/query_use_case_impl/{{ file_name }}';
+{% endmatch %}
+
 
 final {{ name|camel }}UseCaseProvider =
     Provider.autoDispose<{{ name }}UseCase>(
-  (final ref) => throw UnimplementedError(),
+  (final ref) => {{ name }}UseCaseImpl(),
 );
 
 abstract class {{ name }}UseCase {
