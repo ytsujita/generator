@@ -8,3 +8,4 @@ class {{ widget_name|pascal }}Widget extends StatelessWidget {
     return const Scaffold(body: Center(child: Text('{{ widget_name|pascal }}')));
   }
 }
+

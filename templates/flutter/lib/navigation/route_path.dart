@@ -17,18 +17,18 @@ import '../widget/page/{{ route_path.name|snake }}.dart';
 {%- endmatch -%}
 {% endfor %}
 
-
-
 sealed class BaseRoutePath {
   const BaseRoutePath();
+  Page<dynamic> buildPage();
 }
 
 sealed class ShellRoutePath<T> extends BaseRoutePath {
   const ShellRoutePath({
+    required this.selectedIndex,
     required this.pathStack,
   });
+  final T selectedIndex;
   final Map<T, List<BaseRoutePath>> pathStack;
-  Page<dynamic> buildPage();
 }
 
 sealed class RoutePath extends BaseRoutePath {
@@ -50,7 +50,6 @@ sealed class RoutePath extends BaseRoutePath {
     return const {{ default_route_path_name }}RoutePath();
   }
   Uri? get uri;
-  Page<dynamic> buildPage();
 }
 
 {% for shell_route_path in shell_route_paths -%}
@@ -64,7 +63,7 @@ enum {{ shell_route_path.name }}ShellIndex {
 class {{ shell_route_path.name }}ShellRoutePath extends ShellRoutePath<{{ shell_route_path.name }}ShellIndex> {
   const {{ shell_route_path.name }}ShellRoutePath({
     required super.pathStack,
-    required this.selectedIndex,
+    required super.selectedIndex,
   });
   final {{ shell_route_path.name }}ShellIndex selectedIndex;
 

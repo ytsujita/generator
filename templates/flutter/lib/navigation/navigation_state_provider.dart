@@ -10,11 +10,9 @@ final navigationStateProvider =
 );
 
 class NavigationStateNotifier extends Notifier<NavigationState> {
-
   @override
   NavigationState build() {
     return NavigationState.init();
-
   }
 
   /// 完全に画面遷移状態を置き換える

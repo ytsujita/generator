@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../navigation/route_path.dart';
+import '../../components/not_found_page.dart';
 
 final {{ shell_name|camel }}ShellNavigatorKeyProvider =
     Provider<List<GlobalKey<NavigatorState>>>((ref) {
@@ -21,7 +22,7 @@ class {{ shell_name|pascal }}Widget extends ConsumerWidget {
     required this.pathStack,
   });
   final {{ shell_name|pascal }}ShellIndex selectedIndex;
-  final List<BaseRoutePath> pathStack;
+  final Map<{{ shell_name|pascal }}ShellIndex, List<BaseRoutePath> pathStack;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,17 +32,11 @@ class {{ shell_name|pascal }}Widget extends ConsumerWidget {
             MaterialApp.createMaterialHeroController(),
         child: Navigator(
           key: ref.read({{ shell_name|camel }}ShellNavigatorKeyProvider)[selectedIndex.index],
-          pages: pathStack.map(
-            (e) {
-              return switch (e) {
-                ShellRoutePath() => e.buildPage(),
-                RoutePath() => e.buildPage(),
-              };
-            },
-          ).toList(),
+          pages: pathStack[selectedIndex]?.map((e) => e.buildPage()).toList() ?? [const NotFoundPage()],
           onDidRemovePage: (poppedPage) {},
         ),
       ),
     );
   }
 }
+
