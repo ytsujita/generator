@@ -18,13 +18,13 @@ mod filters {
 }
 
 #[derive(Template)]
-#[template(path = "widget/page/widget.dart", escape = "none")]
+#[template(path = "flutter/lib/widget/page/widget.dart", escape = "none")]
 pub(super) struct RouteWidgetTemplate<'a> {
     pub(super) widget_name: &'a str,
 }
 
 #[derive(Template)]
-#[template(path = "widget/page/shell_widget.dart", escape = "none")]
+#[template(path = "flutter/lib/widget/page/shell_widget.dart", escape = "none")]
 pub(super) struct ShellRouteWidgetTemplate<'a> {
     pub(super) shell_name: &'a str,
 }

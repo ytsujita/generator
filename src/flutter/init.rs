@@ -11,32 +11,22 @@ use serde::{Deserialize, Serialize};
 use crate::flutter::config::generate_sample_config;
 use crate::utils::create_file;
 
-const ANALYSIS_OPTIONS_YAML: &[u8] =
-    include_bytes!("../../resources/flutter/analysis_options.yaml");
-const BUILD_YAML: &[u8] = include_bytes!("../../resources/flutter/build.yaml");
-const VSCODE_LAUNCH_JSON: &[u8] = include_bytes!("../../resources/flutter/.vscode/launch.json");
-const VSCODE_SETTINGS_JSON: &[u8] = include_bytes!("../../resources/flutter/.vscode/settings.json");
-const FLAVOR_ENV_FILE: &[u8] = include_bytes!("../../resources/flutter/flavor/.env.sample");
-const MIDDLEWARE: &[u8] = include_bytes!("../../resources/flutter/middleware/shelf_server.dart");
-const EDITOR_CONFIG: &[u8] = include_bytes!("../../resources/flutter/.editorconfig");
-
-struct GenConfig<'a> {
-    bytes: &'a [u8],
-    file_path_name: &'a str,
-}
-
 pub(crate) fn init_flutter_app(
     file_name: &str,
+    generate_config_only: bool,
     overwrite_conflict_files: bool,
     skip_conflict_files: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    generate_sample_config(file_name, overwrite_conflict_files, skip_conflict_files)?;
+    if generate_config_only {
+        return Ok(());
+    }
     copy_dir_recursive(
         Path::new("./"),
         overwrite_conflict_files,
         skip_conflict_files,
     )?;
     edit_pubspec_yaml()?;
-    generate_sample_config(file_name, overwrite_conflict_files, skip_conflict_files)?;
 
     println!("{}", "completed!".green());
     println!("{}", "Please run below commands!".green());
@@ -70,56 +60,6 @@ fn copy_dir_recursive(
     overwrite_all: bool,
     ignore_conflict_config_file: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let gen_configs: Vec<GenConfig> = vec![
-        GenConfig {
-            file_path_name: "build.yaml",
-            bytes: BUILD_YAML,
-        },
-        GenConfig {
-            file_path_name: "analysis_options.yaml",
-            bytes: ANALYSIS_OPTIONS_YAML,
-        },
-        GenConfig {
-            file_path_name: ".vscode/launch.json",
-            bytes: VSCODE_LAUNCH_JSON,
-        },
-        GenConfig {
-            file_path_name: ".vscode/settings.json",
-            bytes: VSCODE_SETTINGS_JSON,
-        },
-        GenConfig {
-            file_path_name: "flavor/.env.sample",
-            bytes: FLAVOR_ENV_FILE,
-        },
-        GenConfig {
-            file_path_name: "flavor/dev.env",
-            bytes: FLAVOR_ENV_FILE,
-        },
-        GenConfig {
-            file_path_name: "flavor/test.env",
-            bytes: FLAVOR_ENV_FILE,
-        },
-        GenConfig {
-            file_path_name: "flavor/prod.env",
-            bytes: FLAVOR_ENV_FILE,
-        },
-        GenConfig {
-            file_path_name: "middleware/shelf_server.dart",
-            bytes: MIDDLEWARE,
-        },
-        GenConfig {
-            file_path_name: ".editorconfig",
-            bytes: EDITOR_CONFIG,
-        },
-    ];
-    for gen_config in gen_configs {
-        create_file(
-            gen_config.file_path_name,
-            gen_config.bytes,
-            overwrite_all,
-            ignore_conflict_config_file,
-        )?;
-    }
     if !dst.exists() {
         fs::create_dir(dst)?;
     }

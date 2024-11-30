@@ -37,6 +37,9 @@ enum FlutterMode {
         /// Skip all conflict files.
         #[arg(short)]
         skip_conflict_config_files: bool,
+        /// Generate only config file.
+        #[arg(short)]
+        config_only: bool,
     },
     Gen {
         /// Overwrite all conflict files.
@@ -68,8 +71,10 @@ fn main() {
                 FlutterMode::Init {
                     overwrite_conflict_files,
                     skip_conflict_config_files,
+                    config_only,
                 } => flutter::init::init_flutter_app(
                     flutter_config_file_name,
+                    config_only,
                     overwrite_conflict_files,
                     skip_conflict_config_files,
                 ),

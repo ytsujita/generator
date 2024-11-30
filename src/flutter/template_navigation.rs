@@ -32,7 +32,7 @@ pub(super) struct ShellRoute {
 }
 
 #[derive(Template)]
-#[template(path = "navigation/route_path.dart", escape = "none")]
+#[template(path = "flutter/lib/navigation/route_path.dart", escape = "none")]
 pub(super) struct RoutePathTemplate<'a> {
     pub(super) route_paths: &'a Vec<&'a Route>,
     pub(super) shell_route_paths: &'a Vec<&'a ShellRoute>,
@@ -111,7 +111,10 @@ pub(super) fn generate_route_path(
     let route_path_template = RoutePathTemplate {
         route_paths: &route_template.iter().collect(),
         shell_route_paths: &shell_template.iter().collect(),
-        default_route_path_name: &route_path_config.default_route_path_name,
+        default_route_path_name: match &route_path_config.default_route_path_name {
+            RouteType::RoutePath(r) => r.name.as_str(),
+            RouteType::ShellRoute(r) => r.name.as_str(),
+        },
     };
     create_dir("lib/navigation").unwrap();
     let render_result = route_path_template.render().unwrap();
@@ -172,12 +175,13 @@ pub(super) fn generate_route_path(
 }
 
 const NAVIGATION_STATE_PROVIDER_BYTES: &[u8] =
-    include_bytes!("../../templates/navigation/navigation_state_provider.dart");
+    include_bytes!("../../templates/flutter/lib/navigation/navigation_state_provider.dart");
 const ROUTE_INFORMATION: &[u8] =
-    include_bytes!("../../templates/navigation/main_route_information.dart");
+    include_bytes!("../../templates/flutter/lib/navigation/main_route_information.dart");
 const ROUTER_DELEGATE: &[u8] =
-    include_bytes!("../../templates/navigation/main_router_delegate.dart");
-const NAVIGATION_STATE: &[u8] = include_bytes!("../../templates/navigation/navigation_state.dart");
+    include_bytes!("../../templates/flutter/lib/navigation/main_router_delegate.dart");
+const NAVIGATION_STATE: &[u8] =
+    include_bytes!("../../templates/flutter/lib/navigation/navigation_state.dart");
 
 pub(super) fn generate_navigation_state(
     route_path_config: &RoutePathConfig,

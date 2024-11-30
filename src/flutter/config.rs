@@ -5,6 +5,33 @@ use serde::{Deserialize, Serialize};
 pub(crate) struct Config {
     pub(crate) route_path_config: RoutePathConfig,
     pub(crate) use_case_config: UseCaseConfig,
+    pub(crate) provider_config: ProviderConfig,
+}
+
+#[derive(Deserialize, Serialize)]
+pub(crate) struct DomainConfig {
+    pub(crate) entities: Option<Vec<DartType>>,
+    pub(crate) repositories: Option<Vec<Repository>>,
+    pub(crate) services: Option<Vec<Service>>,
+    pub(crate) common_exceptions: Option<Vec<ExceptionConfig>>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub(crate) struct Repository {
+    pub(crate) name: String,
+    pub(crate) exceptions: Option<Vec<ExceptionConfig>>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub(crate) struct Service {
+    pub(crate) name: String,
+}
+
+#[derive(Deserialize, Serialize)]
+pub(crate) struct ExceptionConfig {
+    pub(crate) name: String,
+    pub(crate) description: Option<String>,
+    pub(crate) fields: Option<Vec<DartClassField>>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -19,23 +46,18 @@ pub(crate) enum UseCaseType {
 }
 
 #[derive(Deserialize, Serialize)]
-pub(crate) struct UseCaseExceptionConfig {
-    pub(crate) name: String,
-}
-
-#[derive(Deserialize, Serialize)]
 pub(crate) struct UseCase {
     pub(crate) name: String,
     pub(crate) use_case_type: UseCaseType,
     pub(crate) return_type: String,
     pub(crate) is_future_call: bool,
     pub(crate) dir_name: Option<String>,
-    pub(crate) exceptions: Vec<UseCaseExceptionConfig>,
+    pub(crate) exceptions: Vec<ExceptionConfig>,
 }
 
 #[derive(Deserialize, Serialize)]
 pub(crate) struct RoutePathConfig {
-    pub(crate) default_route_path_name: String,
+    pub(crate) default_route_path_name: RouteType,
     pub(crate) route_paths: Vec<RouteType>,
 }
 
@@ -62,6 +84,61 @@ pub(crate) struct RoutePath {
     pub(crate) children: Option<Vec<RouteType>>,
 }
 
+#[derive(Deserialize, Serialize)]
+pub(crate) struct ProviderConfig {
+    pub(crate) use_riverpod_generator: bool,
+    pub(crate) providers: Option<Vec<Provider>>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub(crate) struct Provider {
+    pub(crate) name: String,
+    pub(crate) dir_name: Option<String>,
+    pub(crate) state: DartType,
+    pub(crate) auto_dispose: bool,
+    pub(crate) family_type: Option<DartType>,
+    pub(crate) provider_type: ProviderType,
+}
+
+#[derive(Deserialize, Serialize)]
+pub(crate) enum ProviderType {
+    Provider,
+    NotifierProvider,
+    FutureProvider,
+    StreamProvider,
+    AsyncNotifierProvider,
+    StreamNotifierProvider,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(untagged)]
+pub(crate) enum DartType {
+    Literal(DartAvailableFieldType),
+    Class(DartClass),
+}
+
+#[derive(Deserialize, Serialize)]
+pub(crate) struct DartClass {
+    pub(crate) name: String,
+    pub(crate) fields: Option<Vec<DartClassField>>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub(crate) struct DartClassField {
+    pub(crate) name: String,
+    pub(crate) dart_type: DartType,
+    pub(crate) nullable: bool,
+}
+
+#[derive(Deserialize, Serialize)]
+pub(crate) enum DartAvailableFieldType {
+    String,
+    Int,
+    Dynamic,
+    Bool,
+    Double,
+}
+
 pub(crate) fn generate_sample_config(
     file_name: &str,
     overwrite_conflict: bool,
@@ -76,11 +153,23 @@ pub(crate) fn generate_sample_config(
                     return_type: String::from("SampleReturnType"),
                     is_future_call: true,
                     exceptions: vec![
-                        UseCaseExceptionConfig {
+                        ExceptionConfig {
                             name: String::from("Sample"),
+                            description: None,
+                            fields: Some(vec![DartClassField {
+                                name: String::from("message"),
+                                dart_type: DartType::Literal(DartAvailableFieldType::String),
+                                nullable: true,
+                            }]),
                         },
-                        UseCaseExceptionConfig {
-                            name: String::from("Sample"),
+                        ExceptionConfig {
+                            name: String::from("Sample2"),
+                            description: None,
+                            fields: Some(vec![DartClassField {
+                                name: String::from("message"),
+                                dart_type: DartType::Literal(DartAvailableFieldType::String),
+                                nullable: true,
+                            }]),
                         },
                     ],
                     use_case_type: UseCaseType::Query,
@@ -91,11 +180,23 @@ pub(crate) fn generate_sample_config(
                     return_type: String::from("SampleReturnType2"),
                     is_future_call: false,
                     exceptions: vec![
-                        UseCaseExceptionConfig {
+                        ExceptionConfig {
                             name: String::from("Sample"),
+                            description: None,
+                            fields: Some(vec![DartClassField {
+                                name: String::from("message"),
+                                dart_type: DartType::Literal(DartAvailableFieldType::String),
+                                nullable: true,
+                            }]),
                         },
-                        UseCaseExceptionConfig {
-                            name: String::from("Sample"),
+                        ExceptionConfig {
+                            name: String::from("Sample2"),
+                            description: None,
+                            fields: Some(vec![DartClassField {
+                                name: String::from("message"),
+                                dart_type: DartType::Literal(DartAvailableFieldType::String),
+                                nullable: true,
+                            }]),
                         },
                     ],
                     use_case_type: UseCaseType::Command,
@@ -105,14 +206,15 @@ pub(crate) fn generate_sample_config(
                     dir_name: None,
                     return_type: String::from("SampleReturnType3"),
                     is_future_call: false,
-                    exceptions: vec![
-                        UseCaseExceptionConfig {
-                            name: String::from("Sample3"),
-                        },
-                        UseCaseExceptionConfig {
-                            name: String::from("Sample3"),
-                        },
-                    ],
+                    exceptions: vec![ExceptionConfig {
+                        name: String::from("Sample"),
+                        description: None,
+                        fields: Some(vec![DartClassField {
+                            name: String::from("message"),
+                            dart_type: DartType::Literal(DartAvailableFieldType::String),
+                            nullable: true,
+                        }]),
+                    }],
                     use_case_type: UseCaseType::Command,
                 },
             ],
@@ -201,7 +303,41 @@ pub(crate) fn generate_sample_config(
                     ],
                 }),
             ],
-            default_route_path_name: String::from("SignIn"),
+            default_route_path_name: RouteType::RoutePath(RoutePath {
+                name: String::from("SignIn"),
+                uri: Some(String::from("/sign-in")),
+                path_reg_exp: Some(String::from("^/sign-in$")),
+                dir_name: Some(String::from("auth")),
+                children: None,
+            }),
+        },
+        provider_config: ProviderConfig {
+            providers: Some(vec![
+                Provider {
+                    name: String::from("Sample"),
+                    dir_name: Some(String::from("auth")),
+                    state: DartType::Literal(DartAvailableFieldType::String),
+                    auto_dispose: true,
+                    family_type: None,
+                    provider_type: ProviderType::Provider,
+                },
+                Provider {
+                    name: String::from("Sample2"),
+                    dir_name: Some(String::from("main")),
+                    state: DartType::Class(DartClass {
+                        name: String::from("ClassName"),
+                        fields: Some(vec![DartClassField {
+                            name: String::from("sampleField"),
+                            dart_type: DartType::Literal(DartAvailableFieldType::Int),
+                            nullable: false,
+                        }]),
+                    }),
+                    auto_dispose: true,
+                    family_type: None,
+                    provider_type: ProviderType::Provider,
+                },
+            ]),
+            use_riverpod_generator: false,
         },
     };
     let config_str = serde_yaml::to_string(&config).unwrap();
