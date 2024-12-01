@@ -22,9 +22,18 @@ pub(crate) fn generate_files(
                 overwrite_all_conflict_files,
                 skip_all_conflict_files,
             )?;
-            super::template_provider::generate_provider()?;
+            super::template_provider::generate_providers(
+                &config.riverpod_config,
+                overwrite_all_conflict_files,
+                skip_all_conflict_files,
+            )?;
             super::template_widget::generate_widget(
                 &config.route_path_config,
+                overwrite_all_conflict_files,
+                skip_all_conflict_files,
+            )?;
+            super::template_domain::generate_domain_files(
+                &config.domain_config,
                 overwrite_all_conflict_files,
                 skip_all_conflict_files,
             )?;

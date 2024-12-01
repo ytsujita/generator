@@ -1,77 +1,65 @@
-use crate::flutter::config::{RoutePath, RoutePathConfig, RouteType, ShellRoutePath};
-use crate::utils::{create_dir, create_file, input_yes};
+use askama::Template;
+
+use crate::utils::create_file;
+
+use super::config::{DartType, ProviderType, RiverpodConfig};
 
 pub(super) fn generate_provider() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-struct Route {
+#[derive(Template)]
+#[template(path = "flutter/lib/provider/notifier/provider.dart", escape = "none")]
+pub(super) struct ProviderTemplate<'a> {
     pub(super) name: String,
-    pub(super) uri: Option<String>,
-    pub(super) path_reg_exp: Option<String>,
-    pub(super) dir_name: Option<String>,
-}
-
-struct ShellRoute {
-    pub(super) name: String,
-    pub(super) shell_index_enum_names: Vec<String>,
-    pub(super) dir_name: Option<String>,
+    pub(super) provider_type: &'a ProviderType,
+    pub(super) auto_dispose: bool,
+    pub(super) family_type: &'a Option<DartType>,
+    pub(super) state_name: String,
+    pub(super) state_path: &'a Option<String>,
 }
 
 pub(super) fn generate_providers(
-    route_path_config: &RoutePathConfig,
-    delete_all_conflict_file: bool,
-    ignore_all_conflict_file: bool,
+    riverpod_config: &RiverpodConfig,
+    overwrite_all_conflict_files: bool,
+    skip_all_conflict_files: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut route_paths: Vec<&RoutePath> = vec![];
-    let mut shell_paths: Vec<&ShellRoutePath> = vec![];
-    for path in route_path_config.route_paths.iter() {
-        get_route_from_config(path, &mut route_paths);
-    }
-    for path in route_path_config.route_paths.iter() {
-        get_shell_route_from_config(path, &mut shell_paths);
-    }
-    for route_path in route_paths {
-        let dir_name = route_path.dir_name.clone();
-    }
-    for shell_path in shell_paths {
-        let dir_name = shell_path.dir_name.clone();
+    if let Some(vec) = &riverpod_config.providers {
+        for provider_config in vec {
+            let template = ProviderTemplate {
+                name: provider_config.name.clone(),
+                provider_type: &provider_config.provider_type,
+                auto_dispose: provider_config.auto_dispose,
+                family_type: &provider_config.family_type,
+                state_name: match &provider_config.state {
+                    super::config::DartType::Literal(l) => format!("{}", l),
+                    super::config::DartType::NewClass(n) => n.name.clone(),
+                    super::config::DartType::RefClass(r) => r.name.clone(),
+                },
+                state_path: match &provider_config.state {
+                    super::config::DartType::Literal(_) => &None,
+                    super::config::DartType::NewClass(n) => &Some(n.name.clone()),
+                    super::config::DartType::RefClass(r) => &Some(r.name.clone()),
+                },
+            };
+            let render_res = template.render().unwrap();
+            let file_name = match &provider_config.dir_name {
+                Some(v) => format!(
+                    "lib/provider/notifier/{}/{}_provider.dart",
+                    v, provider_config.name,
+                ),
+                None => format!(
+                    "lib/provider/notifier/{}_provider.dart",
+                    provider_config.name,
+                ),
+            };
+            create_file(
+                &file_name,
+                render_res.as_bytes(),
+                overwrite_all_conflict_files,
+                skip_all_conflict_files,
+            )?;
+        }
     }
     Ok(())
-}
-
-fn get_route_from_config<'a>(node: &'a RouteType, leaves: &mut Vec<&'a RoutePath>) {
-    match node {
-        RouteType::RoutePath(r) => {
-            leaves.push(r);
-            if let Some(children) = &r.children {
-                for child in children {
-                    get_route_from_config(child, leaves);
-                }
-            }
-        }
-        RouteType::ShellRoute(s) => {
-            for shell in s.shells.iter() {
-                get_route_from_config(shell, leaves);
-            }
-        }
-    }
-}
-
-fn get_shell_route_from_config<'a>(node: &'a RouteType, leaves: &mut Vec<&'a ShellRoutePath>) {
-    match node {
-        RouteType::RoutePath(r) => {
-            if let Some(children) = &r.children {
-                for child in children {
-                    get_shell_route_from_config(child, leaves);
-                }
-            }
-        }
-        RouteType::ShellRoute(s) => {
-            leaves.push(s);
-            for shell in s.shells.iter() {
-                get_shell_route_from_config(shell, leaves);
-            }
-        }
-    }
 }

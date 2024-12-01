@@ -42,6 +42,8 @@
 		"repository_impl": "connection",
 		"use_case": "app",
 		"use_case_impl": "app",
+		"command_use_case_impl": "app",
+		"query_object": "container",
 		"entity": "container",
 		"domain": "tasks",
 		"infrastructure": "base",

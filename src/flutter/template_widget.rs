@@ -2,7 +2,7 @@ use askama::Template;
 use change_case::snake_case;
 
 use super::template_navigation::{get_route_from_config, get_shell_route_from_config};
-use crate::flutter::config::{RoutePath, RoutePathConfig, ShellRoutePath};
+use crate::flutter::config::{NavigationConfig, RoutePathConfig, ShellRoutePathConfig};
 use crate::utils::create_file;
 
 mod filters {
@@ -30,12 +30,12 @@ pub(super) struct ShellRouteWidgetTemplate<'a> {
 }
 
 pub(super) fn generate_widget(
-    route_path_config: &RoutePathConfig,
+    route_path_config: &NavigationConfig,
     overwrite_all_conflict_files: bool,
     skip_all_conflict_files: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut route_paths: Vec<&RoutePath> = vec![];
-    let mut shell_paths: Vec<&ShellRoutePath> = vec![];
+    let mut route_paths: Vec<&RoutePathConfig> = vec![];
+    let mut shell_paths: Vec<&ShellRoutePathConfig> = vec![];
     for path in route_path_config.route_paths.iter() {
         get_route_from_config(path, &mut route_paths);
     }

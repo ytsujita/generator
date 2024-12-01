@@ -5,13 +5,8 @@ import '../../../navigation/route_path.dart';
 import '../../components/not_found_page.dart';
 
 final {{ shell_name|camel }}ShellNavigatorKeyProvider =
-    Provider<List<GlobalKey<NavigatorState>>>((ref) {
-  final length = {{ shell_name|pascal }}ShellIndex.values.length;
-  return [
-    for (var i = 0; i < length; i++) ...{
-      GlobalKey<NavigatorState>(),
-    },
-  ];
+    Provider.family<GlobalKey<NavigatorState>, int>((ref, index) {
+  return GlobalKey<NavigatorState>();
 });
 
 
@@ -22,7 +17,7 @@ class {{ shell_name|pascal }}Widget extends ConsumerWidget {
     required this.pathStack,
   });
   final {{ shell_name|pascal }}ShellIndex selectedIndex;
-  final Map<{{ shell_name|pascal }}ShellIndex, List<BaseRoutePath> pathStack;
+  final Map<{{ shell_name|pascal }}ShellIndex, List<BaseRoutePath>> pathStack;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,7 +26,7 @@ class {{ shell_name|pascal }}Widget extends ConsumerWidget {
         controller:
             MaterialApp.createMaterialHeroController(),
         child: Navigator(
-          key: ref.read({{ shell_name|camel }}ShellNavigatorKeyProvider)[selectedIndex.index],
+          key: ref.read({{ shell_name|camel }}ShellNavigatorKeyProvider(selectedIndex)),
           pages: pathStack[selectedIndex]?.map((e) => e.buildPage()).toList() ?? [const NotFoundPage()],
           onDidRemovePage: (poppedPage) {},
         ),

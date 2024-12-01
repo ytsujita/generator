@@ -29,6 +29,7 @@ sealed class ShellRoutePath<T> extends BaseRoutePath {
   });
   final T selectedIndex;
   final Map<T, List<BaseRoutePath>> pathStack;
+  ShellRoutePath<T>? pop();
 }
 
 sealed class RoutePath extends BaseRoutePath {
@@ -60,12 +61,11 @@ enum {{ shell_route_path.name }}ShellIndex {
   ;
 }
 
-class {{ shell_route_path.name }}ShellRoutePath extends ShellRoutePath<{{ shell_route_path.name }}ShellIndex> {
-  const {{ shell_route_path.name }}ShellRoutePath({
+class {{ shell_route_path.name|pascal }}ShellRoutePath extends ShellRoutePath<{{ shell_route_path.name|pascal }}ShellIndex> {
+  const {{ shell_route_path.name|pascal }}ShellRoutePath({
     required super.pathStack,
     required super.selectedIndex,
   });
-  final {{ shell_route_path.name }}ShellIndex selectedIndex;
 
   @override
   Page<dynamic> buildPage() {
@@ -76,12 +76,25 @@ class {{ shell_route_path.name }}ShellRoutePath extends ShellRoutePath<{{ shell_
       ),
     );
   }
+
+  @override
+  ShellRoutePath<{{ shell_route_path.name|pascal }}ShellIndex>? pop() {
+    final targetIndexStack = pathStack[selectedIndex];
+    final newTargetIndexStack = targetIndexStack?..removeLast();
+    if (newTargetIndexStack == null || newTargetIndexStack.isEmpty) {
+      return null;
+    }
+    return {{ shell_route_path.name|pascal }}ShellRoutePath(
+      pathStack: pathStack..update(selectedIndex, (val) => newTargetIndexStack),
+      selectedIndex: selectedIndex,
+    );
+  }
 }
 {%- endfor %}
 
 {%- for route_path in route_paths %}
-class {{ route_path.name }}RoutePath extends RoutePath {
-  const {{ route_path.name }}RoutePath();
+class {{ route_path.name|pascal }}RoutePath extends RoutePath {
+  const {{ route_path.name|pascal }}RoutePath();
   {%- match route_path.path_reg_exp %}
   {% when Some with (uri) %}
   static const String pathRegExp = r'{{ uri }}';

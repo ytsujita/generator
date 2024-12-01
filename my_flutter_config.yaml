@@ -1,5 +1,5 @@
 route_path_config:
-  default_route_path_name: !RoutePath
+  default_route_path: !RoutePath
     name: SignIn
     dir_name: auth
     uri: /sign-in
@@ -88,12 +88,14 @@ use_case_config:
       - name: message
         dart_type: String
         nullable: true
+        is_final: true
     - name: Sample2
       description: null
       fields:
       - name: message
         dart_type: String
         nullable: true
+        is_final: true
   - name: Sample2
     use_case_type: Command
     return_type: SampleReturnType2
@@ -106,12 +108,14 @@ use_case_config:
       - name: message
         dart_type: String
         nullable: true
+        is_final: true
     - name: Sample2
       description: null
       fields:
       - name: message
         dart_type: String
         nullable: true
+        is_final: true
   - name: Sample3
     use_case_type: Command
     return_type: SampleReturnType3
@@ -124,6 +128,7 @@ use_case_config:
       - name: message
         dart_type: String
         nullable: true
+        is_final: true
 provider_config:
   use_riverpod_generator: false
   providers:
@@ -141,6 +146,43 @@ provider_config:
       - name: sampleField
         dart_type: Int
         nullable: false
+        is_final: true
     auto_dispose: true
     family_type: null
     provider_type: Provider
+domain_config:
+  entities:
+  - name: SampleClass
+    fields:
+    - name: sampleField
+      dart_type: Int
+      nullable: false
+      is_final: true
+  repositories:
+  - name: smpleRepository
+    exceptions:
+    - name: sampleException
+      description: これはサンプルの説明
+      fields:
+      - name: field1
+        dart_type: Int
+        nullable: false
+        is_final: true
+  services:
+  - name: smpleRepository
+    exceptions:
+    - name: sampleException
+      description: これはサンプルの説明
+      fields:
+      - name: field1
+        dart_type: Int
+        nullable: false
+        is_final: true
+  common_exceptions:
+  - name: sampleException
+    description: これはサンプルの説明
+    fields:
+    - name: field1
+      dart_type: Int
+      nullable: false
+      is_final: true

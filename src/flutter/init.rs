@@ -65,7 +65,6 @@ fn copy_dir_recursive(
     }
     let glob = "**/*";
     for file in SRC_DIR.find(glob).unwrap() {
-        println!("{:?}", file);
         let dst_path = dst.join(file.path());
         match file {
             include_dir::DirEntry::Dir(d) => {

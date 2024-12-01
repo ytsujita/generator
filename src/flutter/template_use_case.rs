@@ -1,4 +1,4 @@
-use crate::flutter::config::{UseCaseConfig, UseCaseType};
+use crate::flutter::config::{ApplicationCaseConfig, UseCaseType};
 use crate::utils::create_file;
 use askama::Template;
 use change_case::snake_case;
@@ -57,7 +57,7 @@ struct QueryUseCaseImplTemplate<'a> {
 }
 
 pub(super) fn generate_use_case(
-    config: &UseCaseConfig,
+    config: &ApplicationCaseConfig,
     delete_all_conflict_file: bool,
     ignore_all_conflict_file: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {

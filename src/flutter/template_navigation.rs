@@ -1,13 +1,15 @@
-use std::fs::File;
-use std::io::Write;
-use std::path::Path;
-
-use crate::flutter::config::{RoutePath, RoutePathConfig, RouteType, ShellRoutePath};
-use crate::utils::{create_dir, create_file, input_yes};
+use crate::flutter::config::{
+    NavigationConfig, RouteConfigType, RoutePathConfig, ShellRoutePathConfig,
+};
+use crate::utils::create_file;
 use askama::Template;
 
 mod filters {
-    use change_case::{camel_case, snake_case};
+    use change_case::{camel_case, pascal_case, snake_case};
+
+    pub fn pascal<T: std::fmt::Display>(s: T) -> ::askama::Result<String> {
+        Ok(pascal_case(&(s.to_string())))
+    }
 
     pub fn camel<T: std::fmt::Display>(s: T) -> ::askama::Result<String> {
         Ok(camel_case(&(s.to_string())))
@@ -33,58 +35,47 @@ pub(super) struct ShellRoute {
 
 #[derive(Template)]
 #[template(path = "flutter/lib/navigation/route_path.dart", escape = "none")]
-pub(super) struct RoutePathTemplate<'a> {
+struct RoutePathTemplate<'a> {
     pub(super) route_paths: &'a Vec<&'a Route>,
     pub(super) shell_route_paths: &'a Vec<&'a ShellRoute>,
     pub(super) default_route_path_name: &'a str,
 }
 
-pub(super) fn get_route_from_config<'a>(node: &'a RouteType, leaves: &mut Vec<&'a RoutePath>) {
-    match node {
-        RouteType::RoutePath(r) => {
-            leaves.push(r);
-            if let Some(children) = &r.children {
-                for child in children {
-                    get_route_from_config(child, leaves);
-                }
-            }
-        }
-        RouteType::ShellRoute(s) => {
-            for shell in s.shells.iter() {
-                get_route_from_config(shell, leaves);
-            }
-        }
-    }
-}
+#[derive(Template)]
+#[template(
+    path = "flutter/lib/navigation/main_route_information.dart",
+    escape = "none"
+)]
+struct RouteInformationTemplate {}
 
-pub(super) fn get_shell_route_from_config<'a>(
-    node: &'a RouteType,
-    leaves: &mut Vec<&'a ShellRoutePath>,
-) {
-    match node {
-        RouteType::RoutePath(r) => {
-            if let Some(children) = &r.children {
-                for child in children {
-                    get_shell_route_from_config(child, leaves);
-                }
-            }
-        }
-        RouteType::ShellRoute(s) => {
-            leaves.push(s);
-            for shell in s.shells.iter() {
-                get_shell_route_from_config(shell, leaves);
-            }
-        }
-    }
+#[derive(Template)]
+#[template(
+    path = "flutter/lib/navigation/main_router_delegate.dart",
+    escape = "none"
+)]
+struct RouterDelegateTemplate {}
+
+#[derive(Template)]
+#[template(
+    path = "flutter/lib/navigation/navigation_state_provider.dart",
+    escape = "none"
+)]
+struct NavigationStateProviderTemplate {}
+
+#[derive(Template)]
+#[template(path = "flutter/lib/navigation/navigation_state.dart", escape = "none")]
+struct NavigationStateTemplate {
+    route_path_names: Vec<String>,
+    default_route_path_name: String,
 }
 
 pub(super) fn generate_route_path(
-    route_path_config: &RoutePathConfig,
+    route_path_config: &NavigationConfig,
     delete_all_conflict_file: bool,
     ignore_all_conflict_file: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut route_paths: Vec<&RoutePath> = vec![];
-    let mut shell_paths: Vec<&ShellRoutePath> = vec![];
+    let mut route_paths: Vec<&RoutePathConfig> = vec![];
+    let mut shell_paths: Vec<&ShellRoutePathConfig> = vec![];
     for path in route_path_config.route_paths.iter() {
         get_route_from_config(path, &mut route_paths);
     }
@@ -111,47 +102,20 @@ pub(super) fn generate_route_path(
     let route_path_template = RoutePathTemplate {
         route_paths: &route_template.iter().collect(),
         shell_route_paths: &shell_template.iter().collect(),
-        default_route_path_name: match &route_path_config.default_route_path_name {
-            RouteType::RoutePath(r) => r.name.as_str(),
-            RouteType::ShellRoute(r) => r.name.as_str(),
+        default_route_path_name: match &route_path_config.default_route_path {
+            RouteConfigType::RoutePath(r) => r.name.as_str(),
+            RouteConfigType::ShellRoute(r) => r.name.as_str(),
         },
     };
-    create_dir("lib/navigation").unwrap();
     let render_result = route_path_template.render().unwrap();
     let file_name = "lib/navigation/route_path.dart";
-    let route_path_file_path = Path::new(&file_name);
-    let parent_dir_path = route_path_file_path.parent();
-    if let Some(v) = parent_dir_path {
-        if v.is_dir() {
-            let path_str = v.to_str();
-            if let Some(path) = path_str {
-                create_dir(path).unwrap()
-            }
-        } else {
-            println!("Invalid path: {:?}", v);
-        }
-    };
-    if ignore_all_conflict_file {
-        return Ok(());
-    }
-    if delete_all_conflict_file {
-        let mut file = File::create(file_name)?;
-        file.write_all(render_result.as_bytes())?;
-        file.flush()?;
-        return Ok(());
-    }
-    if !route_path_file_path.exists()
-        || (route_path_file_path.exists()
-            && input_yes(&format!(
-                "found file: {}, Do you want to overwrite it?",
-                file_name,
-            )))
-    {
-        let mut file = File::create(file_name)?;
-        file.write_all(render_result.as_bytes())?;
-        file.flush()?;
-    }
-    generate_navigation_state(
+    create_file(
+        file_name,
+        render_result.as_bytes(),
+        delete_all_conflict_file,
+        ignore_all_conflict_file,
+    )?;
+    generate_route_information_parser(
         route_path_config,
         delete_all_conflict_file,
         ignore_all_conflict_file,
@@ -161,7 +125,7 @@ pub(super) fn generate_route_path(
         delete_all_conflict_file,
         ignore_all_conflict_file,
     )?;
-    generate_route_information_parser(
+    generate_navigation_state(
         route_path_config,
         delete_all_conflict_file,
         ignore_all_conflict_file,
@@ -174,71 +138,130 @@ pub(super) fn generate_route_path(
     Ok(())
 }
 
-const NAVIGATION_STATE_PROVIDER_BYTES: &[u8] =
-    include_bytes!("../../templates/flutter/lib/navigation/navigation_state_provider.dart");
-const ROUTE_INFORMATION: &[u8] =
-    include_bytes!("../../templates/flutter/lib/navigation/main_route_information.dart");
-const ROUTER_DELEGATE: &[u8] =
-    include_bytes!("../../templates/flutter/lib/navigation/main_router_delegate.dart");
-const NAVIGATION_STATE: &[u8] =
-    include_bytes!("../../templates/flutter/lib/navigation/navigation_state.dart");
-
-pub(super) fn generate_navigation_state(
-    route_path_config: &RoutePathConfig,
-    delete_all_conflict_file: bool,
-    ignore_all_conflict_file: bool,
+fn generate_navigation_state(
+    route_path_config: &NavigationConfig,
+    overwrite_conflict_file: bool,
+    skip_conflict_file: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let _ = route_path_config;
+    let mut route_paths: Vec<&RoutePathConfig> = vec![];
+    let mut shell_paths: Vec<&ShellRoutePathConfig> = vec![];
+    for path in route_path_config.route_paths.iter() {
+        get_route_from_config(path, &mut route_paths);
+    }
+    for path in route_path_config.route_paths.iter() {
+        get_shell_route_from_config(path, &mut shell_paths);
+    }
+    let mut route_path_names: Vec<String> = vec![];
+    let default_route_path_name: String = match &route_path_config.default_route_path {
+        RouteConfigType::RoutePath(r) => r.name.clone(),
+        RouteConfigType::ShellRoute(r) => r.name.clone(),
+    };
+    for route_path in route_paths {
+        route_path_names.push(route_path.name.clone());
+    }
+    let template = NavigationStateTemplate {
+        route_path_names,
+        default_route_path_name,
+    };
+    let file_name = "lib/navigation/navigation_state.dart";
     create_file(
-        "lib/navigation/navigation_state.dart",
-        NAVIGATION_STATE,
-        delete_all_conflict_file,
-        ignore_all_conflict_file,
+        file_name,
+        template.render().unwrap().as_bytes(),
+        overwrite_conflict_file,
+        skip_conflict_file,
     )?;
     Ok(())
 }
 
-pub(super) fn generate_route_information_parser(
-    route_path_config: &RoutePathConfig,
-    delete_all_conflict_file: bool,
-    ignore_all_conflict_file: bool,
+fn generate_route_information_parser(
+    route_path_config: &NavigationConfig,
+    overwrite_conflict_file: bool,
+    skip_conflict_file: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let _ = route_path_config;
+    let template = RouteInformationTemplate {};
+    let file_name = "lib/navigation/main_route_information.dart";
     create_file(
-        "lib/navigation/main_route_information.dart",
-        ROUTE_INFORMATION,
-        delete_all_conflict_file,
-        ignore_all_conflict_file,
+        file_name,
+        template.render().unwrap().as_bytes(),
+        overwrite_conflict_file,
+        skip_conflict_file,
     )?;
     Ok(())
 }
 
-pub(super) fn generate_router_delegate(
-    route_path_config: &RoutePathConfig,
-    delete_all_conflict_file: bool,
-    ignore_all_conflict_file: bool,
+fn generate_router_delegate(
+    route_path_config: &NavigationConfig,
+    overwrite_conflict_file: bool,
+    skip_conflict_file: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let _ = route_path_config;
+    let template = RouterDelegateTemplate {};
+    let file_name = "lib/navigation/main_route_information.dart";
     create_file(
-        "lib/navigation/main_router_delegate.dart",
-        ROUTER_DELEGATE,
-        delete_all_conflict_file,
-        ignore_all_conflict_file,
+        file_name,
+        template.render().unwrap().as_bytes(),
+        overwrite_conflict_file,
+        skip_conflict_file,
     )?;
     Ok(())
 }
 
-pub(super) fn generate_navigation_state_provider(
-    route_path_config: &RoutePathConfig,
-    delete_all_conflict_file: bool,
-    ignore_all_conflict_file: bool,
+fn generate_navigation_state_provider(
+    route_path_config: &NavigationConfig,
+    overwrite_conflict_file: bool,
+    skip_conflict_file: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let _ = route_path_config;
+    let template = NavigationStateProviderTemplate {};
+    let file_name = "lib/navigation/navigation_state_provider.dart";
     create_file(
-        "lib/navigation/navigation_state_provider.dart",
-        NAVIGATION_STATE_PROVIDER_BYTES,
-        delete_all_conflict_file,
-        ignore_all_conflict_file,
+        file_name,
+        template.render().unwrap().as_bytes(),
+        overwrite_conflict_file,
+        skip_conflict_file,
     )?;
     Ok(())
+}
+
+pub(super) fn get_route_from_config<'a>(
+    node: &'a RouteConfigType,
+    leaves: &mut Vec<&'a RoutePathConfig>,
+) {
+    match node {
+        RouteConfigType::RoutePath(r) => {
+            leaves.push(r);
+            if let Some(children) = &r.children {
+                for child in children {
+                    get_route_from_config(child, leaves);
+                }
+            }
+        }
+        RouteConfigType::ShellRoute(s) => {
+            for shell in s.shells.iter() {
+                get_route_from_config(shell, leaves);
+            }
+        }
+    }
+}
+
+pub(super) fn get_shell_route_from_config<'a>(
+    node: &'a RouteConfigType,
+    leaves: &mut Vec<&'a ShellRoutePathConfig>,
+) {
+    match node {
+        RouteConfigType::RoutePath(r) => {
+            if let Some(children) = &r.children {
+                for child in children {
+                    get_shell_route_from_config(child, leaves);
+                }
+            }
+        }
+        RouteConfigType::ShellRoute(s) => {
+            leaves.push(s);
+            for shell in s.shells.iter() {
+                get_shell_route_from_config(shell, leaves);
+            }
+        }
+    }
 }
