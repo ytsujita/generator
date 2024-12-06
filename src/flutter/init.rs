@@ -115,14 +115,14 @@ fn edit_pubspec_yaml(pubspec_yaml: &mut PubspecYaml) -> Result<(), Box<dyn std::
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(untagged)]
-enum Value<'a> {
+pub(crate) enum Value<'a> {
     Str(&'a str),
     Bool(bool),
     HashMap(std::collections::HashMap<&'a str, Value<'a>>),
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct PubspecYaml<'a> {
+pub(crate) struct PubspecYaml<'a> {
     pub(crate) name: &'a str,
     pub(crate) description: &'a str,
     pub(crate) publish_to: &'a str,
@@ -135,11 +135,11 @@ struct PubspecYaml<'a> {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct ImportPathConverter {
+pub(crate) struct ImportPathConverter {
     relative: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct Environment<'a> {
+pub(crate) struct Environment<'a> {
     sdk: &'a str,
 }

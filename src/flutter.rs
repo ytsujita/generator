@@ -1,4 +1,5 @@
 pub mod config;
+pub mod format;
 pub mod init;
 pub mod template;
 pub mod template_domain;
