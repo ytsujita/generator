@@ -49,6 +49,7 @@ enum FlutterMode {
         #[arg(short)]
         skip_conflict_files: bool,
     },
+    Format,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -86,12 +87,13 @@ fn main() {
                     overwrite_conflict_files,
                     skip_conflict_files,
                 ),
+                FlutterMode::Format => flutter::format::format_import(),
             }
         }
         GenType::Terraform { mode } => {
-            match mode {
-                TerraformMode::Init => println!("terraform init"),
-                TerraformMode::Gen => println!("terraform gen"),
+            let _ = match mode {
+                TerraformMode::Init => terraform::init::init_terraform_project(),
+                TerraformMode::Gen => Ok(()),
             };
             Ok(())
         }
