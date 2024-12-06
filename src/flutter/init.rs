@@ -41,7 +41,6 @@ pub(crate) fn init_flutter_app(
         "intl",
         "hooks_riverpod",
         "flutter_hooks",
-        "flutter_localizations:{\"sdk\":\"flutter\"}",
         "json_annotation",
         "logging",
         "mockito",
@@ -53,14 +52,13 @@ pub(crate) fn init_flutter_app(
         "shelf_cors_headers",
         "dev:import_path_converter",
         "dev:build_runner",
+        "dev:pubspec_dependency_sorter",
         "dev:flutter_launcher_icons",
         "dev:flutter_lints",
         "dev:import_sorter",
         "dev:json_serializable",
-        "dev:pubspec_dependency_sorter",
         "dev:rename_app",
         "dev:source_gen",
-        "dev:pubspec_dependency_sorter",
     ];
     println!("flutter pub add {}", args.join(" "));
     Ok(())
@@ -105,7 +103,16 @@ fn copy_dir_recursive(
 
 fn edit_pubspec_yaml(pubspec_yaml: &mut PubspecYaml) -> Result<(), Box<dyn std::error::Error>> {
     pubspec_yaml.flutter.insert("generate", Value::Bool(true));
-    pubspec_yaml.import_path_converter = Some(ImportPathConverter { relative: true });
+    pubspec_yaml.import_sorter = Some(ImportSorter {
+        relative: true,
+        emojis: false,
+        comments: false,
+    });
+    let map: std::collections::HashMap<_, _> =
+        [("sdk", Value::Str("flutter"))].iter().cloned().collect();
+    pubspec_yaml
+        .dependencies
+        .insert("flutter_localizations", Value::HashMap(map));
     let mut file = File::create("pubspec.yaml")?;
     let config_str = serde_yaml::to_string(&pubspec_yaml).unwrap();
     file.write_all(config_str.as_bytes())?;
@@ -113,7 +120,7 @@ fn edit_pubspec_yaml(pubspec_yaml: &mut PubspecYaml) -> Result<(), Box<dyn std::
     Ok(())
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(untagged)]
 pub(crate) enum Value<'a> {
     Str(&'a str),
@@ -131,12 +138,14 @@ pub(crate) struct PubspecYaml<'a> {
     pub(crate) dependencies: std::collections::HashMap<&'a str, Value<'a>>,
     pub(crate) dev_dependencies: std::collections::HashMap<&'a str, Value<'a>>,
     pub(crate) flutter: std::collections::HashMap<&'a str, Value<'a>>,
-    pub(crate) import_path_converter: Option<ImportPathConverter>,
+    pub(crate) import_sorter: Option<ImportSorter>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub(crate) struct ImportPathConverter {
-    relative: bool,
+pub(crate) struct ImportSorter {
+    pub(crate) relative: bool,
+    pub(crate) emojis: bool,
+    pub(crate) comments: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

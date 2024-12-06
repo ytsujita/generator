@@ -5,6 +5,7 @@ route_path_config:
     dir_name: auth
     uri: /sign-in
     path_reg_exp: ^/sign-in$
+    fields: null
     children: null
   route_paths:
   - !RoutePath
@@ -12,42 +13,49 @@ route_path_config:
     dir_name: auth
     uri: /sign-in
     path_reg_exp: ^/sign-in$
+    fields: null
     children:
     - !RoutePath
       name: SignUp
       dir_name: auth
       uri: /sign-up
       path_reg_exp: ^/sign-up$
+      fields: null
       children: null
     - !RoutePath
       name: ForgotPassword
       dir_name: auth
       uri: /forgot-password
       path_reg_exp: ^/forgot-password$
+      fields: null
       children:
       - !RoutePath
         name: ResetPassword
         dir_name: auth
         uri: /reset-password
         path_reg_exp: ^/reset-password$
+        fields: null
         children: null
   - !RoutePath
     name: VerifyAccount
     dir_name: auth
     uri: /verify-account
     path_reg_exp: ^/verify-account$
+    fields: null
     children: null
   - !RoutePath
     name: FetchLoading
     dir_name: auth
     uri: null
     path_reg_exp: null
+    fields: null
     children: null
   - !RoutePath
     name: SessionTimeout
     dir_name: auth
     uri: null
     path_reg_exp: null
+    fields: null
     children: null
   - !ShellRoute
     name: Main
@@ -62,6 +70,7 @@ route_path_config:
         dir_name: main
         uri: /sample3-url
         path_reg_exp: ^/sample3-url$
+        fields: null
         children: null
 application_config:
   use_cases:
