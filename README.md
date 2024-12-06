@@ -41,3 +41,4 @@
     - providerの自動生成の実装
     - RepositoryとServiceの自動生成実装
     - 既存のファイルをコピーしてくるような実装をしたい。特にwidgetとやl10n
+    - testのディレクトリを作成する。test/widget/とtest/unit/
