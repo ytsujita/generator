@@ -10,12 +10,10 @@ import 'navigation/main_router_delegate.dart';
 import 'provider/notifier/application_name_provider.dart';
 import 'provider/notifier/back_button_dispatcher.dart';
 import 'provider/notifier/messenger_key_provider.dart';
-import 'src/rust/frb_generated.dart';
 import 'widget/components/my_builder.dart';
 import 'widget/theme/my_theme.dart';
 
 Future<void> main() async {
-  await RustLib.init();
   Logger.root.level = kReleaseMode ? Level.WARNING : Level.ALL;
   Logger.root.onRecord.listen((LogRecord rec) {
     debugPrint(

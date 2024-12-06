@@ -1,18 +1,13 @@
 import 'package:flutter/foundation.dart';
+import 'package:{{ application_name }}/common/utils/result.dart';
+import 'package:{{ application_name }}/application/use_case/{{ file_name }}';
 
-import '../../{% for i in 0..file_nest_size -%}
-../
-{%- endfor -%}common/utils/result.dart';
-import '../../{% for i in 0..file_nest_size -%}
-../
-{%- endfor -%}application/use_case/{{ file_name }}';
-
-
-abstract class {{ name }}UseCaseImpl extends {{ name }}SampleUseCaes {
+class {{ name|pascal }}UseCaseImpl extends {{ name|pascal }}UseCase {
+  @override
 {%- if is_future_call %}
-  Future<Result<{{ return_type }}, {{ name }}UseCaseException>> call() {
+  Future<Result<{{ return_type }}, {{ name|pascal }}UseCaseException>> call() {
 {%- else %}
-  Result<{{ return_type }}, {{ name }}UseCaseException> call() {
+  Result<{{ return_type }}, {{ name|pascal }}UseCaseException> call() {
 {%- endif %}
     try {
       throw UnimplementedError();

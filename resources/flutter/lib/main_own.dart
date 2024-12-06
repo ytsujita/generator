@@ -8,7 +8,6 @@ import 'package:url_strategy/url_strategy.dart';
 import 'provider/notifier/application_name_provider.dart';
 import 'provider/notifier/messenger_key_provider.dart';
 import 'widget/components/my_builder.dart';
-import 'widget/page/main/generator_config/generator_config_widget.dart';
 import 'widget/theme/my_theme.dart';
 
 void main() async {
@@ -52,7 +51,7 @@ class MyApp extends ConsumerWidget {
       theme: lightTheme(context),
       darkTheme: darkTheme(context),
       themeMode: ThemeMode.dark,
-      home: const GeneratorConfigWidget(),
+      home: const Scaffold(body: Center(child: Text('sample widget'))),
     );
   }
 }

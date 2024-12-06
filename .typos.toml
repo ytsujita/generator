@@ -1,0 +1,7 @@
+[default]
+
+[default.extend-identifiers]
+ser = "ser"
+
+[default.extend-words]
+teh = "teh"

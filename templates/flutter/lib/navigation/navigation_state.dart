@@ -22,9 +22,9 @@ class NavigationState {
     final _ = previousState ?? NavigationState.init();
     switch (routePath) {
       {% for name in route_path_names %}
-        case {{ name|pascal }}():
+        case {{ name|pascal }}RoutePath():
           // TODO: Handle this case.
-      {%- endfor -%}
+      {%- endfor %}
     }
   }
 

@@ -4,10 +4,14 @@ use askama::Template;
 use change_case::snake_case;
 
 mod filters {
-    use change_case::camel_case;
+    use change_case::{camel_case, pascal_case};
 
     pub fn camel<T: std::fmt::Display>(s: T) -> ::askama::Result<String> {
         Ok(camel_case(&(s.to_string())))
+    }
+
+    pub fn pascal<T: std::fmt::Display>(s: T) -> ::askama::Result<String> {
+        Ok(pascal_case(&(s.to_string())))
     }
 }
 
@@ -21,12 +25,12 @@ struct UseCaseExceptionTemplate {
     escape = "none"
 )]
 struct UseCaseTemplate<'a> {
+    application_name: &'a str,
     name: &'a str,
     return_type: &'a str,
     is_future_call: bool,
     exceptions: &'a Vec<&'a UseCaseExceptionTemplate>,
     use_case_type: &'a UseCaseType,
-    file_nest_size: i32,
     file_name: &'a str,
 }
 
@@ -36,10 +40,10 @@ struct UseCaseTemplate<'a> {
     escape = "none"
 )]
 struct CommandUseCaseImplTemplate<'a> {
+    application_name: &'a str,
     name: &'a str,
     return_type: &'a str,
     is_future_call: bool,
-    file_nest_size: i32,
     file_name: &'a str,
 }
 
@@ -49,14 +53,15 @@ struct CommandUseCaseImplTemplate<'a> {
     escape = "none"
 )]
 struct QueryUseCaseImplTemplate<'a> {
+    application_name: &'a str,
     name: &'a str,
     return_type: &'a str,
     is_future_call: bool,
-    file_nest_size: i32,
     file_name: &'a str,
 }
 
 pub(super) fn generate_use_case(
+    application_name: &str,
     config: &ApplicationConfig,
     delete_all_conflict_file: bool,
     ignore_all_conflict_file: bool,
@@ -70,12 +75,7 @@ pub(super) fn generate_use_case(
         }
         let dir_name: String = match &use_case.dir_name {
             Some(val) => {
-                let res: String = val
-                    .split("/")
-                    .map(snake_case)
-                    .collect::<Vec<String>>()
-                    .join("/");
-                format!("lib/application/use_case/{}", res)
+                format!("lib/application/use_case/{}", val)
             }
             None => String::from("lib/application/use_case"),
         };
@@ -84,18 +84,17 @@ pub(super) fn generate_use_case(
             Some(val) => format!("{}/{}.dart", val, snake_case(&use_case.name)),
             None => format!("{}.dart", snake_case(&use_case.name)),
         };
-        let nest_size: i32 = std::cmp::max(
-            (dir_name.chars().filter(|&c| c == '/').count() as i32) - 2,
-            0,
-        );
         let use_case_template = UseCaseTemplate {
+            application_name,
             name: &use_case.name,
-            return_type: "SampleReturnType",
-            is_future_call: false,
+            return_type: match &use_case.return_type {
+                super::config::DartType::Future(v) => &format!("{}", *v),
+                _ => &format!("{}", &use_case.return_type),
+            },
+            is_future_call: matches!(&use_case.return_type, super::config::DartType::Future(_)),
             exceptions: &exceptions.iter().collect(),
             use_case_type: &use_case.use_case_type,
             file_name: &file_name_without_common,
-            file_nest_size: nest_size,
         };
         let render_result = use_case_template.render().unwrap();
         create_file(
@@ -108,24 +107,26 @@ pub(super) fn generate_use_case(
             UseCaseType::Command => {
                 let dir_name: String = match &use_case.dir_name {
                     Some(val) => {
-                        let res: String = val
-                            .split("/")
-                            .map(snake_case)
-                            .collect::<Vec<String>>()
-                            .join("/");
-                        format!("lib/application/command_use_case_impl/{}", res,)
+                        format!("lib/application/command_use_case_impl/{}", val)
                     }
                     None => String::from("lib/application/command_use_case_impl"),
                 };
                 let file_name = &format!("{}/{}.dart", dir_name, snake_case(&use_case.name));
                 let command_use_case_impl_template = CommandUseCaseImplTemplate {
+                    application_name,
                     name: &use_case.name,
-                    return_type: "SampleReturnType",
-                    is_future_call: false,
+                    return_type: match &use_case.return_type {
+                        super::config::DartType::Future(v) => &format!("{}", *v),
+                        _ => &format!("{}", &use_case.return_type),
+                    },
+                    is_future_call: matches!(
+                        &use_case.return_type,
+                        super::config::DartType::Future(_)
+                    ),
                     file_name: &file_name_without_common,
-                    file_nest_size: nest_size,
                 };
                 let render_result = command_use_case_impl_template.render().unwrap();
+                println!("{}", file_name);
                 create_file(
                     file_name,
                     render_result.as_bytes(),
@@ -136,22 +137,23 @@ pub(super) fn generate_use_case(
             UseCaseType::Query => {
                 let dir_name: String = match &use_case.dir_name {
                     Some(val) => {
-                        let res: String = val
-                            .split("/")
-                            .map(snake_case)
-                            .collect::<Vec<String>>()
-                            .join("/");
-                        format!("lib/infrastructure/query_use_case_impl/{}", res)
+                        format!("lib/infrastructure/query_use_case_impl/{}", val)
                     }
                     None => String::from("lib/infrastructure/query_use_case_impl"),
                 };
                 let file_name = &format!("{}/{}.dart", dir_name, snake_case(&use_case.name));
                 let query_use_case_impl_template = QueryUseCaseImplTemplate {
+                    application_name,
                     name: &use_case.name,
-                    return_type: "SampleReturnType",
-                    is_future_call: false,
+                    return_type: match &use_case.return_type {
+                        super::config::DartType::Future(v) => &format!("{}", *v),
+                        _ => &format!("{}", &use_case.return_type),
+                    },
+                    is_future_call: matches!(
+                        &use_case.return_type,
+                        super::config::DartType::Future(_)
+                    ),
                     file_name: &file_name_without_common,
-                    file_nest_size: nest_size,
                 };
                 let render_result = query_use_case_impl_template.render().unwrap();
                 create_file(

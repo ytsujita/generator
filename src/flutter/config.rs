@@ -1,9 +1,13 @@
 use crate::utils::create_file;
 use change_case::pascal_case;
-use serde::{Deserialize, Serialize};
+use serde::de::{self, MapAccess, Visitor};
+use serde::ser::SerializeStruct;
+use serde::{self, Deserialize, Deserializer, Serialize, Serializer};
+use std::fmt;
 
 #[derive(Deserialize, Serialize)]
 pub(crate) struct Config {
+    pub(crate) application_name: String,
     pub(crate) route_path_config: NavigationConfig,
     pub(crate) application_config: ApplicationConfig,
     pub(crate) riverpod_config: RiverpodConfig,
@@ -80,8 +84,8 @@ pub(crate) struct ShellRoutePathConfig {
 
 #[derive(Deserialize, Serialize, Clone)]
 pub(crate) enum ShellIndexType {
-    String(Vec<String>),
-    Int(Vec<i64>),
+    String,
+    Int,
     Enum(Vec<String>),
 }
 
@@ -91,6 +95,7 @@ pub(crate) struct RoutePathConfig {
     pub(crate) dir_name: Option<String>,
     pub(crate) uri: Option<String>,
     pub(crate) path_reg_exp: Option<String>,
+    pub(crate) fields: Option<Vec<DartField>>,
     pub(crate) children: Option<Vec<RouteConfigType>>,
 }
 
@@ -120,14 +125,14 @@ pub(crate) enum ProviderType {
     StreamNotifierProvider,
 }
 
-#[derive(Deserialize, Serialize)]
-#[serde(untagged)]
+#[derive(Debug)]
 pub(crate) enum DartType {
     Int,
     Double,
     String,
     Bool,
     Dynamic,
+    Tuple(Vec<(String, DartType)>),
     List(Box<DartType>),
     Map(Box<DartType>, Box<DartType>),
     Set(Box<DartType>),
@@ -139,32 +144,252 @@ pub(crate) enum DartType {
     Function(Box<DartFunc>),
 }
 
-#[derive(Deserialize, Serialize)]
+impl serde::Serialize for DartType {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("DartType", 2)?;
+        match self {
+            DartType::Int => state.serialize_field("type", "Int")?,
+            DartType::Double => state.serialize_field("type", "Double")?,
+            DartType::String => state.serialize_field("type", "String")?,
+            DartType::Bool => state.serialize_field("type", "Bool")?,
+            DartType::Dynamic => state.serialize_field("type", "Dynamic")?,
+            DartType::List(inner) => {
+                state.serialize_field("type", "List")?;
+                state.serialize_field("inner", inner)?;
+            }
+            DartType::Map(key, value) => {
+                state.serialize_field("type", "Map")?;
+                state.serialize_field("key", key)?;
+                state.serialize_field("value", value)?;
+            }
+            DartType::Set(inner) => {
+                state.serialize_field("type", "Set")?;
+                state.serialize_field("inner", inner)?;
+            }
+            DartType::Future(inner) => {
+                state.serialize_field("type", "Future")?;
+                state.serialize_field("inner", inner)?;
+            }
+            DartType::Stream(inner) => {
+                state.serialize_field("type", "Stream")?;
+                state.serialize_field("inner", inner)?;
+            }
+            DartType::NewClass(class) => {
+                state.serialize_field("type", "NewClass")?;
+                state.serialize_field("class", class)?;
+            }
+            DartType::RefClass(class_ref) => {
+                state.serialize_field("type", "RefClass")?;
+                state.serialize_field("class_ref", class_ref)?;
+            }
+            DartType::Void => state.serialize_field("type", "Void")?,
+            DartType::Function(func) => {
+                state.serialize_field("type", "Function")?;
+                state.serialize_field("func", func)?;
+            }
+            DartType::Tuple(v) => {
+                state.serialize_field("type", "Tuple")?;
+                state.serialize_field("tuple", v)?;
+            }
+        }
+        state.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for DartType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "snake_case")]
+        enum Field {
+            Type,
+            Inner,
+            Key,
+            Value,
+            Class,
+            ClassRef,
+            Func,
+            Tuple,
+        }
+
+        struct DartTypeVisitor;
+
+        impl<'de> Visitor<'de> for DartTypeVisitor {
+            type Value = DartType;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a valid DartType")
+            }
+
+            fn visit_map<V>(self, mut map: V) -> Result<DartType, V::Error>
+            where
+                V: MapAccess<'de>,
+            {
+                let mut type_name = None;
+                let mut inner = None;
+                let mut key_ = None;
+                let mut value = None;
+                let mut class = None;
+                let mut class_ref = None;
+                let mut func = None;
+                let mut tuple_ = None;
+
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Type => {
+                            if type_name.is_some() {
+                                return Err(de::Error::duplicate_field("type"));
+                            }
+                            type_name = Some(map.next_value()?);
+                        }
+                        Field::Inner => {
+                            if inner.is_some() {
+                                return Err(de::Error::duplicate_field("inner"));
+                            }
+                            inner = Some(map.next_value()?);
+                        }
+                        Field::Key => {
+                            if key_.is_some() {
+                                return Err(de::Error::duplicate_field("key"));
+                            }
+                            key_ = Some(map.next_value()?);
+                        }
+                        Field::Value => {
+                            if value.is_some() {
+                                return Err(de::Error::duplicate_field("value"));
+                            }
+                            value = Some(map.next_value()?);
+                        }
+                        Field::Class => {
+                            if class.is_some() {
+                                return Err(de::Error::duplicate_field("class"));
+                            }
+                            class = Some(map.next_value()?);
+                        }
+                        Field::ClassRef => {
+                            if class_ref.is_some() {
+                                return Err(de::Error::duplicate_field("class_ref"));
+                            }
+                            class_ref = Some(map.next_value()?);
+                        }
+                        Field::Func => {
+                            if func.is_some() {
+                                return Err(de::Error::duplicate_field("func"));
+                            }
+                            func = Some(map.next_value()?);
+                        }
+                        Field::Tuple => {
+                            if tuple_.is_some() {
+                                return Err(de::Error::duplicate_field("tuple"));
+                            }
+                            tuple_ = Some(map.next_value()?);
+                        }
+                    }
+                }
+
+                let type_name: String =
+                    type_name.ok_or_else(|| de::Error::missing_field("type"))?;
+                match type_name.as_str() {
+                    "Int" => Ok(DartType::Int),
+                    "Double" => Ok(DartType::Double),
+                    "String" => Ok(DartType::String),
+                    "Bool" => Ok(DartType::Bool),
+                    "Dynamic" => Ok(DartType::Dynamic),
+                    "List" => {
+                        let inner = inner.ok_or_else(|| de::Error::missing_field("inner"))?;
+                        Ok(DartType::List(Box::new(inner)))
+                    }
+                    "Map" => {
+                        let key = key_.ok_or_else(|| de::Error::missing_field("key"))?;
+                        let value = value.ok_or_else(|| de::Error::missing_field("value"))?;
+                        Ok(DartType::Map(Box::new(key), Box::new(value)))
+                    }
+                    "Set" => {
+                        let inner = inner.ok_or_else(|| de::Error::missing_field("inner"))?;
+                        Ok(DartType::Set(Box::new(inner)))
+                    }
+                    "Future" => {
+                        let inner = inner.ok_or_else(|| de::Error::missing_field("inner"))?;
+                        Ok(DartType::Future(Box::new(inner)))
+                    }
+                    "Stream" => {
+                        let inner = inner.ok_or_else(|| de::Error::missing_field("inner"))?;
+                        Ok(DartType::Stream(Box::new(inner)))
+                    }
+                    "NewClass" => {
+                        let class = class.ok_or_else(|| de::Error::missing_field("class"))?;
+                        Ok(DartType::NewClass(class))
+                    }
+                    "RefClass" => {
+                        let class_ref =
+                            class_ref.ok_or_else(|| de::Error::missing_field("class_ref"))?;
+                        Ok(DartType::RefClass(class_ref))
+                    }
+                    "Void" => Ok(DartType::Void),
+                    "Function" => {
+                        let func = func.ok_or_else(|| de::Error::missing_field("func"))?;
+                        Ok(DartType::Function(Box::new(func)))
+                    }
+                    "Tuple" => {
+                        let tuple = tuple_.ok_or_else(|| de::Error::missing_field("tuple"))?;
+                        Ok(DartType::Tuple(tuple))
+                    }
+                    _ => Err(de::Error::unknown_variant(
+                        &type_name,
+                        &[
+                            "Int", "Double", "String", "Bool", "Dynamic", "List", "Map", "Set",
+                            "Future", "Stream", "NewClass", "RefClass", "Void", "Function",
+                        ],
+                    )),
+                }
+            }
+        }
+
+        const FIELDS: &[&str] = &[
+            "type",
+            "inner",
+            "key",
+            "value",
+            "class",
+            "class_ref",
+            "func",
+        ];
+        deserializer.deserialize_struct("DartType", FIELDS, DartTypeVisitor)
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug)]
 pub(crate) struct DartFunc {
     pub(crate) return_type: DartType,
     pub(crate) args: Vec<DartArg>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub(crate) struct DartArg {
     pub(crate) name: String,
     pub(crate) required: bool,
     pub(crate) arg_type: DartType,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub(crate) struct DartClassRef {
     pub(crate) name: String,
     pub(crate) path: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub(crate) struct DartClass {
     pub(crate) name: String,
+    pub(crate) is_immutable: bool,
     pub(crate) fields: Option<Vec<DartField>>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub(crate) struct DartField {
     pub(crate) name: String,
     pub(crate) dart_type: DartType,
@@ -208,17 +433,26 @@ impl std::fmt::Display for DartType {
                     .collect::<Vec<String>>()
                     .join(", "),
             ),
+            DartType::Tuple(v) => &format!(
+                "({{{}}})",
+                v.iter()
+                    .map(|f| format!("{} {}", f.1, f.0))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
         };
         write!(f, "{}", s)
     }
 }
 
 pub(crate) fn generate_sample_config(
+    application_name: &str,
     file_name: &str,
     overwrite_conflict: bool,
     skip_conflict: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let config = Config {
+        application_name: application_name.to_string(),
         application_config: ApplicationConfig {
             use_cases: vec![
                 UseCaseConfig {
@@ -326,23 +560,27 @@ pub(crate) fn generate_sample_config(
                     uri: Some(String::from("/sign-in")),
                     path_reg_exp: Some(String::from("^/sign-in$")),
                     dir_name: Some(String::from("auth")),
+                    fields: None,
                     children: Some(vec![
                         RouteConfigType::RoutePath(RoutePathConfig {
                             name: String::from("SignUp"),
                             uri: Some(String::from("/sign-up")),
                             path_reg_exp: Some(String::from("^/sign-up$")),
                             dir_name: Some(String::from("auth")),
+                            fields: None,
                             children: None,
                         }),
                         RouteConfigType::RoutePath(RoutePathConfig {
                             name: String::from("ForgotPassword"),
                             uri: Some(String::from("/forgot-password")),
                             path_reg_exp: Some(String::from("^/forgot-password$")),
+                            fields: None,
                             dir_name: Some(String::from("auth")),
                             children: Some(vec![RouteConfigType::RoutePath(RoutePathConfig {
                                 name: String::from("ResetPassword"),
                                 uri: Some(String::from("/reset-password")),
                                 dir_name: Some(String::from("auth")),
+                                fields: None,
                                 path_reg_exp: Some(String::from("^/reset-password$")),
                                 children: None,
                             })]),
@@ -354,6 +592,7 @@ pub(crate) fn generate_sample_config(
                     dir_name: Some(String::from("auth")),
                     uri: Some(String::from("/verify-account")),
                     path_reg_exp: Some(String::from("^/verify-account$")),
+                    fields: None,
                     children: None,
                 }),
                 RouteConfigType::RoutePath(RoutePathConfig {
@@ -361,6 +600,7 @@ pub(crate) fn generate_sample_config(
                     uri: None,
                     path_reg_exp: None,
                     children: None,
+                    fields: None,
                     dir_name: Some(String::from("auth")),
                 }),
                 RouteConfigType::RoutePath(RoutePathConfig {
@@ -368,6 +608,7 @@ pub(crate) fn generate_sample_config(
                     uri: None,
                     path_reg_exp: None,
                     children: None,
+                    fields: None,
                     dir_name: Some(String::from("auth")),
                 }),
                 RouteConfigType::ShellRoute(ShellRoutePathConfig {
@@ -386,6 +627,7 @@ pub(crate) fn generate_sample_config(
                                 uri: Some(String::from("/sample1-url")),
                                 path_reg_exp: Some(String::from("^/sample1-url$")),
                                 children: None,
+                                fields: None,
                                 dir_name: Some(String::from("main")),
                             }),
                         ),
@@ -395,6 +637,7 @@ pub(crate) fn generate_sample_config(
                                 name: String::from("Sample2"),
                                 uri: Some(String::from("/sample2-url")),
                                 path_reg_exp: Some(String::from("^/sample2-url$")),
+                                fields: None,
                                 children: None,
                                 dir_name: Some(String::from("main")),
                             }),
@@ -405,6 +648,7 @@ pub(crate) fn generate_sample_config(
                                 name: String::from("Sample3"),
                                 uri: Some(String::from("/sample3-url")),
                                 path_reg_exp: Some(String::from("^/sample3-url$")),
+                                fields: None,
                                 children: None,
                                 dir_name: Some(String::from("main")),
                             }),
@@ -419,6 +663,7 @@ pub(crate) fn generate_sample_config(
                 uri: Some(String::from("/sign-in")),
                 path_reg_exp: Some(String::from("^/sign-in$")),
                 dir_name: Some(String::from("auth")),
+                fields: None,
                 children: None,
             }),
         },
@@ -448,6 +693,7 @@ pub(crate) fn generate_sample_config(
                     dir_name: Some(String::from("main")),
                     state: DartType::NewClass(DartClass {
                         name: String::from("ClassName"),
+                        is_immutable: true,
                         fields: Some(vec![DartField {
                             name: String::from("sampleField"),
                             dart_type: DartType::Int,
@@ -465,6 +711,7 @@ pub(crate) fn generate_sample_config(
         domain_config: DomainConfig {
             entities: Some(vec![DartClass {
                 name: String::from("SampleClass"),
+                is_immutable: true,
                 fields: Some(vec![DartField {
                     name: String::from("sampleField"),
                     dart_type: DartType::Int,

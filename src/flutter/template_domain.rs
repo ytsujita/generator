@@ -3,10 +3,14 @@ use change_case::snake_case;
 
 use crate::utils::create_file;
 
-use super::config::DomainConfig;
+use super::config::{DartClass, DartType, DomainConfig};
 
 mod filters {
-    use change_case::{pascal_case, snake_case};
+    use change_case::{camel_case, pascal_case, snake_case};
+
+    pub fn camel<T: std::fmt::Display>(s: T) -> ::askama::Result<String> {
+        Ok(camel_case(&(s.to_string())))
+    }
 
     pub fn pascal<T: std::fmt::Display>(s: T) -> ::askama::Result<String> {
         Ok(pascal_case(&(s.to_string())))
@@ -15,6 +19,13 @@ mod filters {
     pub fn snake<T: std::fmt::Display>(s: T) -> ::askama::Result<String> {
         Ok(snake_case(&(s.to_string())))
     }
+}
+
+#[derive(Template)]
+#[template(path = "flutter/lib/domain/entity/entity.dart", escape = "none")]
+pub(super) struct EntityTemplate<'a> {
+    pub(super) application_name: &'a str,
+    pub(super) dart_class: &'a DartClass,
 }
 
 #[derive(Template)]
@@ -51,10 +62,35 @@ pub(super) struct ServiceImplTemplate<'a> {
 }
 
 pub(super) fn generate_domain_files(
+    application_name: &str,
     domain_config: &DomainConfig,
     overwrite_all_conflict_files: bool,
     skip_all_conflict_files: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    // entities
+    let entity_configs = match &domain_config.entities {
+        Some(v) => v.iter().collect(),
+        None => vec![],
+    };
+    for entity_config in entity_configs {
+        let entity_template = EntityTemplate {
+            application_name,
+            dart_class: entity_config,
+        };
+        let render_res = entity_template.render().unwrap();
+        let file_name = format!(
+            "lib/domain/entity/{}.dart",
+            &snake_case(&entity_config.name)
+        );
+        create_file(
+            &file_name,
+            render_res.as_bytes(),
+            overwrite_all_conflict_files,
+            skip_all_conflict_files,
+        )?;
+    }
+
+    // repositories
     let names = match &domain_config.repositories {
         Some(v) => v.iter().map(|s| s.name.clone()).collect(),
         None => vec![],

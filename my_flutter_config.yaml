@@ -1,3 +1,4 @@
+application_name: sample2
 route_path_config:
   default_route_path: !RoutePath
     name: SignIn
@@ -67,16 +68,22 @@ application_config:
   - name: signIn
     use_case_type: Query
     return_type:
-      name: SignInUser
-      path: lib/domain/entity/auth
+      type: Future
+      inner:
+        type: RefClass
+        class_ref:
+          name: SignInUser
+          path: lib/domain/entity/auth
     dir_name: auth
     args:
     - name: email
-      dart_type: null
+      dart_type:
+        type: String
       nullable: false
       is_final: true
     - name: password
-      dart_type: null
+      dart_type:
+        type: String
       nullable: false
       is_final: true
     exceptions:
@@ -84,19 +91,22 @@ application_config:
       description: null
       fields:
       - name: message
-        dart_type: null
+        dart_type:
+          type: String
         nullable: true
         is_final: true
     - name: Sample2
       description: null
       fields:
       - name: message
-        dart_type: null
+        dart_type:
+          type: String
         nullable: true
         is_final: true
   - name: SignOut
     use_case_type: Command
-    return_type: null
+    return_type:
+      type: Void
     dir_name: auth
     args: null
     exceptions:
@@ -104,23 +114,27 @@ application_config:
       description: null
       fields:
       - name: message
-        dart_type: null
+        dart_type:
+          type: String
         nullable: true
         is_final: true
     - name: Sample2
       description: null
       fields:
       - name: message
-        dart_type: null
+        dart_type:
+          type: String
         nullable: true
         is_final: true
   - name: ForgotPassword
     use_case_type: Command
-    return_type: null
+    return_type:
+      type: Void
     dir_name: auth
     args:
     - name: email
-      dart_type: null
+      dart_type:
+        type: String
       nullable: false
       is_final: true
     exceptions:
@@ -128,7 +142,8 @@ application_config:
       description: null
       fields:
       - name: message
-        dart_type: null
+        dart_type:
+          type: String
         nullable: true
         is_final: true
 riverpod_config:
@@ -136,36 +151,45 @@ riverpod_config:
   providers:
   - name: Sample
     dir_name: auth
-    state: null
+    state:
+      type: String
     auto_dispose: true
     family_type: null
     provider_type: Provider
   - name: Sample2
     dir_name: main
     state:
-      name: sample
-      path: lib/domain/entity
+      type: RefClass
+      class_ref:
+        name: sample
+        path: lib/domain/entity
     auto_dispose: true
     family_type: null
     provider_type: Provider
   - name: Sample2
     dir_name: main
     state:
-      name: ClassName
-      fields:
-      - name: sampleField
-        dart_type: null
-        nullable: false
-        is_final: true
+      type: NewClass
+      class:
+        name: ClassName
+        is_immutable: true
+        fields:
+        - name: sampleField
+          dart_type:
+            type: Int
+          nullable: false
+          is_final: true
     auto_dispose: true
     family_type: null
     provider_type: Provider
 domain_config:
   entities:
   - name: SampleClass
+    is_immutable: true
     fields:
     - name: sampleField
-      dart_type: null
+      dart_type:
+        type: Int
       nullable: false
       is_final: true
   repositories:
@@ -175,7 +199,8 @@ domain_config:
       description: これはサンプルの説明
       fields:
       - name: field1
-        dart_type: null
+        dart_type:
+          type: Int
         nullable: false
         is_final: true
   services:
@@ -185,7 +210,8 @@ domain_config:
       description: これはサンプルの説明
       fields:
       - name: field1
-        dart_type: null
+        dart_type:
+          type: Int
         nullable: false
         is_final: true
   common_exceptions:
@@ -193,6 +219,7 @@ domain_config:
     description: これはサンプルの説明
     fields:
     - name: field1
-      dart_type: null
+      dart_type:
+        type: Int
       nullable: false
       is_final: true

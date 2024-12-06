@@ -71,10 +71,10 @@ struct NavigationStateTemplate {
     default_route_path_name: String,
 }
 
-pub(super) fn generate_route_path(
+pub(super) fn generate_navigation(
     route_path_config: &NavigationConfig,
-    delete_all_conflict_file: bool,
-    ignore_all_conflict_file: bool,
+    overwrite_all_conflict_files: bool,
+    skip_all_conflict_files: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut route_paths: Vec<&RoutePathConfig> = vec![];
     let mut shell_paths: Vec<&ShellRoutePathConfig> = vec![];
@@ -101,6 +101,43 @@ pub(super) fn generate_route_path(
             dir_name: shell_path.dir_name.clone(),
         })
     }
+    generate_route_path(
+        route_path_config,
+        overwrite_all_conflict_files,
+        skip_all_conflict_files,
+        &route_template,
+        &shell_template,
+    )?;
+    generate_route_information_parser(
+        route_path_config,
+        overwrite_all_conflict_files,
+        skip_all_conflict_files,
+    )?;
+    generate_router_delegate(
+        route_path_config,
+        overwrite_all_conflict_files,
+        skip_all_conflict_files,
+    )?;
+    generate_navigation_state(
+        route_path_config,
+        overwrite_all_conflict_files,
+        skip_all_conflict_files,
+    )?;
+    generate_navigation_state_provider(
+        route_path_config,
+        overwrite_all_conflict_files,
+        skip_all_conflict_files,
+    )?;
+    Ok(())
+}
+
+fn generate_route_path(
+    route_path_config: &NavigationConfig,
+    overwrite_conflict_file: bool,
+    skip_conflict_file: bool,
+    route_template: &[Route],
+    shell_template: &[ShellRoute],
+) -> Result<(), Box<dyn std::error::Error>> {
     let route_path_template = RoutePathTemplate {
         route_paths: &route_template.iter().collect(),
         shell_route_paths: &shell_template.iter().collect(),
@@ -114,28 +151,8 @@ pub(super) fn generate_route_path(
     create_file(
         file_name,
         render_result.as_bytes(),
-        delete_all_conflict_file,
-        ignore_all_conflict_file,
-    )?;
-    generate_route_information_parser(
-        route_path_config,
-        delete_all_conflict_file,
-        ignore_all_conflict_file,
-    )?;
-    generate_router_delegate(
-        route_path_config,
-        delete_all_conflict_file,
-        ignore_all_conflict_file,
-    )?;
-    generate_navigation_state(
-        route_path_config,
-        delete_all_conflict_file,
-        ignore_all_conflict_file,
-    )?;
-    generate_navigation_state_provider(
-        route_path_config,
-        delete_all_conflict_file,
-        ignore_all_conflict_file,
+        overwrite_conflict_file,
+        skip_conflict_file,
     )?;
     Ok(())
 }
@@ -199,7 +216,7 @@ fn generate_router_delegate(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let _ = route_path_config;
     let template = RouterDelegateTemplate {};
-    let file_name = "lib/navigation/main_route_information.dart";
+    let file_name = "lib/navigation/main_router_delegate.dart";
     create_file(
         file_name,
         template.render().unwrap().as_bytes(),

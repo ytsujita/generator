@@ -1,11 +1,12 @@
-import 'package:email_validator/email_validator.dart';
-
 extension EmailValidatorExtension on String? {
   bool get isEmail {
     if (this == null) {
       return false;
     }
-    return EmailValidator.validate(this!);
+    final regex = RegExp(
+      r'''^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$''',
+    );
+    return regex.hasMatch(this!);
   }
 }
 

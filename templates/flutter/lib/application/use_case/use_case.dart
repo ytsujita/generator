@@ -1,33 +1,28 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../common/utils/result.dart';
-{%- match use_case_type -%}
+import 'package:{{ application_name }}/common/utils/result.dart';
+{% match use_case_type %}
 {%- when UseCaseType::Command -%}
-import '../{% for i in 0..file_nest_size -%}
-../
-{%- endfor -%}command_use_case_impl/{{ file_name }}';
+import 'package:{{ application_name }}/application/command_use_case_impl/{{ file_name }}';
 {%- when UseCaseType::Query -%}
-import '../../{% for i in 0..file_nest_size -%}
-../
-{%- endfor -%}infrastructure/query_use_case_impl/{{ file_name }}';
+import 'package:{{ application_name }}/infrastructure/query_use_case_impl/{{ file_name }}';
 {% endmatch %}
 
-
 final {{ name|camel }}UseCaseProvider =
-    Provider.autoDispose<{{ name }}UseCase>(
-  (final ref) => {{ name }}UseCaseImpl(),
+    Provider.autoDispose<{{ name|pascal }}UseCase>(
+  (final ref) => {{ name|pascal }}UseCaseImpl(),
 );
 
-abstract class {{ name }}UseCase {
+abstract class {{ name|pascal }}UseCase {
 {%- if is_future_call %}
-  Future<Result<{{ return_type }}, {{ name }}UseCaseException>> call();
+  Future<Result<{{ return_type }}, {{ name|pascal }}UseCaseException>> call();
 {%- else %}
-  Result<{{ return_type }}, {{ name }}UseCaseException> call();
+  Result<{{ return_type }}, {{ name|pascal }}UseCaseException> call();
 {%- endif %}
 }
 
-sealed class {{ name }}UseCaseException implements Exception {}
+sealed class {{ name|pascal }}UseCaseException implements Exception {}
 {% for exception in exceptions %}
-class {{ exception.name }}Exception extends {{ name }}UseCaseException {}
-{%- endfor %}
+class {{ exception.name|pascal }}Exception extends {{ name|pascal }}UseCaseException {}
+{% endfor %}
 

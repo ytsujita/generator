@@ -9,7 +9,7 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_cors_headers/shelf_cors_headers.dart';
 
 final myCorsHeaders = {
-  'Access-Control-Allow-Origin': 'https://localhost:5555', // 繝輔Ο繝ｳ繝医お繝ｳ繝峨・URL
+  'Access-Control-Allow-Origin': 'https://localhost:5555',
   'Access-Control-Allow-Credentials': 'true',
   'Access-Control-Allow-Headers':
       'Origin, Content-Type, X-Auth-Token, X-Requested-With',
@@ -18,10 +18,10 @@ final myCorsHeaders = {
 };
 
 void main() async {
-  // CORS縺ｮ險ｭ螳・  const certificateChain = 'localhost.crt';
+  const certificateChain = 'localhost.crt';
   const certificateKey = 'localhost.key';
 
-  // 繝溘ラ繝ｫ繧ｦ繧ｧ繧｢縺ｮ險ｭ螳・  final handler = const Pipeline()
+  final handler = const Pipeline()
       .addMiddleware(
         corsHeaders(
           headers: myCorsHeaders,
@@ -31,7 +31,7 @@ void main() async {
       .addMiddleware(logRequests())
       .addHandler(_echoRequest);
 
-  // 繧ｵ繝ｼ繝舌・縺ｮ襍ｷ蜍・  final server = await io.serve(
+  final server = await io.serve(
     handler,
     InternetAddress.anyIPv4,
     8080,

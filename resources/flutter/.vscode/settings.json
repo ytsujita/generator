@@ -60,6 +60,7 @@
 		"!RoutePath mapping",
 		"!ShellRoute",
 		"!ShellRoute sequence",
-		"!ShellRoute mapping"
+		"!ShellRoute mapping",
+		"!Enum sequence"
 	]
 }

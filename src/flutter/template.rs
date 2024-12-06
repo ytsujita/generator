@@ -12,12 +12,13 @@ pub(crate) fn generate_files(
     match fs::read_to_string(config_file_name) {
         Ok(config_str) => {
             let config: Config = serde_yaml::from_str(config_str.as_str()).unwrap();
-            super::template_navigation::generate_route_path(
+            super::template_navigation::generate_navigation(
                 &config.route_path_config,
                 overwrite_all_conflict_files,
                 skip_all_conflict_files,
             )?;
             super::template_use_case::generate_use_case(
+                &config.application_name,
                 &config.application_config,
                 overwrite_all_conflict_files,
                 skip_all_conflict_files,
@@ -33,6 +34,7 @@ pub(crate) fn generate_files(
                 skip_all_conflict_files,
             )?;
             super::template_domain::generate_domain_files(
+                &config.application_name,
                 &config.domain_config,
                 overwrite_all_conflict_files,
                 skip_all_conflict_files,

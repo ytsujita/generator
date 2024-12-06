@@ -17,16 +17,23 @@ pub(crate) fn init_flutter_app(
     overwrite_conflict_files: bool,
     skip_conflict_files: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    generate_sample_config(file_name, overwrite_conflict_files, skip_conflict_files)?;
+    let pubspec_yaml_file_str = fs::read_to_string("pubspec.yaml")?;
+    let mut pubspec_yaml: PubspecYaml = serde_yaml::from_str(&pubspec_yaml_file_str).unwrap();
+    generate_sample_config(
+        pubspec_yaml.name,
+        file_name,
+        overwrite_conflict_files,
+        skip_conflict_files,
+    )?;
     if generate_config_only {
         return Ok(());
     }
+    edit_pubspec_yaml(&mut pubspec_yaml)?;
     copy_dir_recursive(
         Path::new("./"),
         overwrite_conflict_files,
         skip_conflict_files,
     )?;
-    edit_pubspec_yaml()?;
 
     println!("{}", "completed!".green());
     println!("{}", "Please run below commands!".green());
@@ -40,6 +47,11 @@ pub(crate) fn init_flutter_app(
         "mockito",
         "url_strategy",
         "uuid",
+        "slang",
+        "slang_flutter",
+        "shelf",
+        "shelf_cors_headers",
+        "dev:import_path_converter",
         "dev:build_runner",
         "dev:flutter_launcher_icons",
         "dev:flutter_lints",
@@ -48,6 +60,7 @@ pub(crate) fn init_flutter_app(
         "dev:pubspec_dependency_sorter",
         "dev:rename_app",
         "dev:source_gen",
+        "dev:pubspec_dependency_sorter",
     ];
     println!("flutter pub add {}", args.join(" "));
     Ok(())
@@ -90,10 +103,9 @@ fn copy_dir_recursive(
     Ok(())
 }
 
-fn edit_pubspec_yaml() -> Result<(), Box<dyn std::error::Error>> {
-    let pubspec_yaml_file_str = fs::read_to_string("pubspec.yaml")?;
-    let mut pubspec_yaml: PubspecYaml = serde_yaml::from_str(&pubspec_yaml_file_str).unwrap();
+fn edit_pubspec_yaml(pubspec_yaml: &mut PubspecYaml) -> Result<(), Box<dyn std::error::Error>> {
     pubspec_yaml.flutter.insert("generate", Value::Bool(true));
+    pubspec_yaml.import_path_converter = Some(ImportPathConverter { relative: true });
     let mut file = File::create("pubspec.yaml")?;
     let config_str = serde_yaml::to_string(&pubspec_yaml).unwrap();
     file.write_all(config_str.as_bytes())?;
@@ -119,6 +131,12 @@ struct PubspecYaml<'a> {
     pub(crate) dependencies: std::collections::HashMap<&'a str, Value<'a>>,
     pub(crate) dev_dependencies: std::collections::HashMap<&'a str, Value<'a>>,
     pub(crate) flutter: std::collections::HashMap<&'a str, Value<'a>>,
+    pub(crate) import_path_converter: Option<ImportPathConverter>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ImportPathConverter {
+    relative: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

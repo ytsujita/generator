@@ -26,3 +26,17 @@
 - API 通信部分はGraphQLのようなもので良い
     - それ以降の具体的な実装の自動生成は現実的ではなく、AI支援による実装が簡単にできる
     - また、自動生成では複雑化が進み、使用者が理解できない構造になる
+
+
+## TODO
+
+- flutter
+    - route_pathに変数を保持できるようにする
+    - fromRoutePathのデフォルト初期構築を実装
+    - shellのindexのタイプを切り替えられるように実装
+    - flutter pub add を実行させる
+    - dart fix --applyを実行させる
+    - import_path_converterを実行して絶対パスを相対に変換する
+    - slangなどでl10nのファイルをわかりやすくする
+    - providerの自動生成の実装
+    - RepositoryとServiceの自動生成実装
