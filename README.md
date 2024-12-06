@@ -6,7 +6,6 @@
 - 設定ファイルからDDD構成のファイル群を生成
 - 画面遷移・頻出する画面(認証画面など)を生成
 - UseCaseの生成
-- Domainの実装は書いたほうが早いだろう
 - Infrastructureは実装しない
     - API通信部分はswagger.yamlを記述して以下コマンドを実行する
         - `openapi-generator-cli generate -i swagger.yaml -g dart-dio -o openapi`
@@ -31,12 +30,14 @@
 ## TODO
 
 - flutter
-    - route_pathに変数を保持できるようにする
-    - fromRoutePathのデフォルト初期構築を実装
+    - `route_path`に変数を保持できるようにする
+    - `fromRoutePath`のデフォルト初期構築を実装
     - shellのindexのタイプを切り替えられるように実装
-    - flutter pub add を実行させる
-    - dart fix --applyを実行させる
-    - import_path_converterを実行して絶対パスを相対に変換する
+    - `flutter pub add`を実行させる
+    - `dart fix --apply`を実行させる
+    - `flutter pub run import_sorter:main`を実行させる
+    - `package:{my_app}`のimportを相対に変換する
     - slangなどでl10nのファイルをわかりやすくする
     - providerの自動生成の実装
     - RepositoryとServiceの自動生成実装
+    - 既存のファイルをコピーしてくるような実装をしたい。特にwidgetとやl10n

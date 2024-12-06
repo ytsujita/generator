@@ -34,29 +34,27 @@ pub(crate) fn init_flutter_app(
         overwrite_conflict_files,
         skip_conflict_files,
     )?;
-
     println!("{}", "completed!".green());
     println!("{}", "Please run below commands!".green());
     let args = vec![
-        "intl",
-        "hooks_riverpod",
         "flutter_hooks",
+        "hooks_riverpod",
+        "intl",
         "json_annotation",
         "logging",
         "mockito",
-        "url_strategy",
-        "uuid",
-        "slang",
-        "slang_flutter",
         "shelf",
         "shelf_cors_headers",
-        "dev:import_path_converter",
+        "slang",
+        "slang_flutter",
+        "url_strategy",
+        "uuid",
         "dev:build_runner",
-        "dev:pubspec_dependency_sorter",
         "dev:flutter_launcher_icons",
         "dev:flutter_lints",
         "dev:import_sorter",
         "dev:json_serializable",
+        "dev:pubspec_dependency_sorter",
         "dev:rename_app",
         "dev:source_gen",
     ];
