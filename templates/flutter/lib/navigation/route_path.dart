@@ -54,12 +54,16 @@ sealed class RoutePath extends BaseRoutePath {
 }
 
 {% for shell_route_path in shell_route_paths -%}
+{% match shell_route_path.shell_index %}
+  {% when ShellIndexType::Enum with (val) %}
 enum {{ shell_route_path.name }}ShellIndex {
-  {%- for enum_name in shell_route_path.shell_index_enum_names %}
+  {%- for enum_name in val %}
   {{ enum_name|camel }},
   {%- endfor %}
   ;
 }
+  {%- when _ -%}
+{% endmatch %}
 
 class {{ shell_route_path.name|pascal }}ShellRoutePath extends ShellRoutePath<{{ shell_route_path.name|pascal }}ShellIndex> {
   const {{ shell_route_path.name|pascal }}ShellRoutePath({

@@ -18,7 +18,7 @@ pub(crate) fn generate_files(
                 skip_all_conflict_files,
             )?;
             super::template_use_case::generate_use_case(
-                &config.use_case_config,
+                &config.application_config,
                 overwrite_all_conflict_files,
                 skip_all_conflict_files,
             )?;

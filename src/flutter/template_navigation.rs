@@ -4,6 +4,8 @@ use crate::flutter::config::{
 use crate::utils::create_file;
 use askama::Template;
 
+use super::config::ShellIndexType;
+
 mod filters {
     use change_case::{camel_case, pascal_case, snake_case};
 
@@ -29,7 +31,7 @@ pub(super) struct Route {
 
 pub(super) struct ShellRoute {
     pub(super) name: String,
-    pub(super) shell_index_enum_names: Vec<String>,
+    pub(super) shell_index: ShellIndexType,
     pub(super) dir_name: Option<String>,
 }
 
@@ -95,7 +97,7 @@ pub(super) fn generate_route_path(
     for shell_path in shell_paths {
         shell_template.push(ShellRoute {
             name: shell_path.name.clone(),
-            shell_index_enum_names: shell_path.shell_index_enum_names.clone(),
+            shell_index: shell_path.shell_index.clone(),
             dir_name: shell_path.dir_name.clone(),
         })
     }
@@ -238,7 +240,7 @@ pub(super) fn get_route_from_config<'a>(
             }
         }
         RouteConfigType::ShellRoute(s) => {
-            for shell in s.shells.iter() {
+            for shell in s.shells.values() {
                 get_route_from_config(shell, leaves);
             }
         }
@@ -259,7 +261,7 @@ pub(super) fn get_shell_route_from_config<'a>(
         }
         RouteConfigType::ShellRoute(s) => {
             leaves.push(s);
-            for shell in s.shells.iter() {
+            for shell in s.shells.values() {
                 get_shell_route_from_config(shell, leaves);
             }
         }

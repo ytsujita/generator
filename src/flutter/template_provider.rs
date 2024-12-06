@@ -4,8 +4,12 @@ use crate::utils::create_file;
 
 use super::config::{DartType, ProviderType, RiverpodConfig};
 
-pub(super) fn generate_provider() -> Result<(), Box<dyn std::error::Error>> {
-    Ok(())
+mod filters {
+    use change_case::camel_case;
+
+    pub fn camel<T: std::fmt::Display>(s: T) -> ::askama::Result<String> {
+        Ok(camel_case(&(s.to_string())))
+    }
 }
 
 #[derive(Template)]
@@ -31,15 +35,11 @@ pub(super) fn generate_providers(
                 provider_type: &provider_config.provider_type,
                 auto_dispose: provider_config.auto_dispose,
                 family_type: &provider_config.family_type,
-                state_name: match &provider_config.state {
-                    super::config::DartType::Literal(l) => format!("{}", l),
-                    super::config::DartType::NewClass(n) => n.name.clone(),
-                    super::config::DartType::RefClass(r) => r.name.clone(),
-                },
+                state_name: format!("{}", &provider_config.state),
                 state_path: match &provider_config.state {
-                    super::config::DartType::Literal(_) => &None,
                     super::config::DartType::NewClass(n) => &Some(n.name.clone()),
                     super::config::DartType::RefClass(r) => &Some(r.name.clone()),
+                    _ => &None,
                 },
             };
             let render_res = template.render().unwrap();

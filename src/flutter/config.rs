@@ -1,10 +1,11 @@
 use crate::utils::create_file;
+use change_case::pascal_case;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
 pub(crate) struct Config {
     pub(crate) route_path_config: NavigationConfig,
-    pub(crate) use_case_config: ApplicationCaseConfig,
+    pub(crate) application_config: ApplicationConfig,
     pub(crate) riverpod_config: RiverpodConfig,
     pub(crate) domain_config: DomainConfig,
 }
@@ -33,11 +34,11 @@ pub(crate) struct ServiceConfig {
 pub(crate) struct ExceptionConfig {
     pub(crate) name: String,
     pub(crate) description: Option<String>,
-    pub(crate) fields: Option<Vec<DartClassField>>,
+    pub(crate) fields: Option<Vec<DartField>>,
 }
 
 #[derive(Deserialize, Serialize)]
-pub(crate) struct ApplicationCaseConfig {
+pub(crate) struct ApplicationConfig {
     pub(crate) use_cases: Vec<UseCaseConfig>,
 }
 
@@ -51,9 +52,9 @@ pub(crate) enum UseCaseType {
 pub(crate) struct UseCaseConfig {
     pub(crate) name: String,
     pub(crate) use_case_type: UseCaseType,
-    pub(crate) return_type: String,
-    pub(crate) is_future_call: bool,
+    pub(crate) return_type: DartType,
     pub(crate) dir_name: Option<String>,
+    pub(crate) args: Option<Vec<DartField>>,
     pub(crate) exceptions: Vec<ExceptionConfig>,
 }
 
@@ -73,8 +74,15 @@ pub(crate) enum RouteConfigType {
 pub(crate) struct ShellRoutePathConfig {
     pub(crate) name: String,
     pub(crate) dir_name: Option<String>,
-    pub(crate) shell_index_enum_names: Vec<String>,
-    pub(crate) shells: Vec<RouteConfigType>,
+    pub(crate) shell_index: ShellIndexType,
+    pub(crate) shells: std::collections::HashMap<String, RouteConfigType>,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+pub(crate) enum ShellIndexType {
+    String(Vec<String>),
+    Int(Vec<i64>),
+    Enum(Vec<String>),
 }
 
 #[derive(Deserialize, Serialize)]
@@ -115,9 +123,33 @@ pub(crate) enum ProviderType {
 #[derive(Deserialize, Serialize)]
 #[serde(untagged)]
 pub(crate) enum DartType {
-    Literal(DartAvailableFieldType),
+    Int,
+    Double,
+    String,
+    Bool,
+    Dynamic,
+    List(Box<DartType>),
+    Map(Box<DartType>, Box<DartType>),
+    Set(Box<DartType>),
+    Future(Box<DartType>),
+    Stream(Box<DartType>),
     NewClass(DartClass),
     RefClass(DartClassRef),
+    Void,
+    Function(Box<DartFunc>),
+}
+
+#[derive(Deserialize, Serialize)]
+pub(crate) struct DartFunc {
+    pub(crate) return_type: DartType,
+    pub(crate) args: Vec<DartArg>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub(crate) struct DartArg {
+    pub(crate) name: String,
+    pub(crate) required: bool,
+    pub(crate) arg_type: DartType,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -129,34 +161,53 @@ pub(crate) struct DartClassRef {
 #[derive(Deserialize, Serialize)]
 pub(crate) struct DartClass {
     pub(crate) name: String,
-    pub(crate) fields: Option<Vec<DartClassField>>,
+    pub(crate) fields: Option<Vec<DartField>>,
 }
 
 #[derive(Deserialize, Serialize)]
-pub(crate) struct DartClassField {
+pub(crate) struct DartField {
     pub(crate) name: String,
     pub(crate) dart_type: DartType,
     pub(crate) nullable: bool,
     pub(crate) is_final: bool,
 }
 
-#[derive(Deserialize, Serialize)]
-pub(crate) enum DartAvailableFieldType {
-    String,
-    Int,
-    Dynamic,
-    Bool,
-    Double,
+impl std::fmt::Display for DartArg {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut s = String::new();
+        if self.required {
+            s.push_str("required");
+        }
+        s.push_str(&format!("{} {}", self.arg_type, self.name));
+        write!(f, "{}", s)
+    }
 }
 
-impl std::fmt::Display for DartAvailableFieldType {
+impl std::fmt::Display for DartType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            DartAvailableFieldType::String => "String",
-            DartAvailableFieldType::Int => "int",
-            DartAvailableFieldType::Dynamic => "dynamic",
-            DartAvailableFieldType::Bool => "bool",
-            DartAvailableFieldType::Double => "double",
+            DartType::Int => "int",
+            DartType::Double => "double",
+            DartType::String => "String",
+            DartType::Bool => "bool",
+            DartType::Dynamic => "dynamic",
+            DartType::List(v) => &format!("List<{}>", v),
+            DartType::Map(k, v) => &format!("Map<{}, {}>", k, v),
+            DartType::Set(v) => &format!("Set<{}>", v),
+            DartType::Future(v) => &format!("Future<{}>", v),
+            DartType::Stream(v) => &format!("Stream<{}>", v),
+            DartType::NewClass(v) => &pascal_case(&v.name).to_string(),
+            DartType::RefClass(v) => &pascal_case(&v.name).to_string(),
+            DartType::Void => "void",
+            DartType::Function(v) => &format!(
+                "{} Function({})",
+                v.return_type,
+                v.args
+                    .iter()
+                    .map(|f| format!("{{{}}}", f))
+                    .collect::<Vec<String>>()
+                    .join(", "),
+            ),
         };
         write!(f, "{}", s)
     }
@@ -168,20 +219,36 @@ pub(crate) fn generate_sample_config(
     skip_conflict: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let config = Config {
-        use_case_config: ApplicationCaseConfig {
+        application_config: ApplicationConfig {
             use_cases: vec![
                 UseCaseConfig {
-                    name: String::from("Sample"),
+                    name: String::from("signIn"),
                     dir_name: Some(String::from("auth")),
-                    return_type: String::from("SampleReturnType"),
-                    is_future_call: true,
+                    return_type: DartType::Future(Box::new(DartType::RefClass(DartClassRef {
+                        name: String::from("SignInUser"),
+                        path: String::from("lib/domain/entity/auth"),
+                    }))),
+                    args: Some(vec![
+                        DartField {
+                            name: String::from("email"),
+                            dart_type: DartType::String,
+                            nullable: false,
+                            is_final: true,
+                        },
+                        DartField {
+                            name: String::from("password"),
+                            dart_type: DartType::String,
+                            nullable: false,
+                            is_final: true,
+                        },
+                    ]),
                     exceptions: vec![
                         ExceptionConfig {
                             name: String::from("Sample"),
                             description: None,
-                            fields: Some(vec![DartClassField {
+                            fields: Some(vec![DartField {
                                 name: String::from("message"),
-                                dart_type: DartType::Literal(DartAvailableFieldType::String),
+                                dart_type: DartType::String,
                                 nullable: true,
                                 is_final: true,
                             }]),
@@ -189,9 +256,9 @@ pub(crate) fn generate_sample_config(
                         ExceptionConfig {
                             name: String::from("Sample2"),
                             description: None,
-                            fields: Some(vec![DartClassField {
+                            fields: Some(vec![DartField {
                                 name: String::from("message"),
-                                dart_type: DartType::Literal(DartAvailableFieldType::String),
+                                dart_type: DartType::String,
                                 nullable: true,
                                 is_final: true,
                             }]),
@@ -200,17 +267,17 @@ pub(crate) fn generate_sample_config(
                     use_case_type: UseCaseType::Query,
                 },
                 UseCaseConfig {
-                    name: String::from("Sample2"),
-                    dir_name: Some(String::from("main")),
-                    return_type: String::from("SampleReturnType2"),
-                    is_future_call: false,
+                    name: String::from("SignOut"),
+                    dir_name: Some(String::from("auth")),
+                    return_type: DartType::Void,
+                    args: None,
                     exceptions: vec![
                         ExceptionConfig {
                             name: String::from("Sample"),
                             description: None,
-                            fields: Some(vec![DartClassField {
+                            fields: Some(vec![DartField {
                                 name: String::from("message"),
-                                dart_type: DartType::Literal(DartAvailableFieldType::String),
+                                dart_type: DartType::String,
                                 nullable: true,
                                 is_final: true,
                             }]),
@@ -218,9 +285,9 @@ pub(crate) fn generate_sample_config(
                         ExceptionConfig {
                             name: String::from("Sample2"),
                             description: None,
-                            fields: Some(vec![DartClassField {
+                            fields: Some(vec![DartField {
                                 name: String::from("message"),
-                                dart_type: DartType::Literal(DartAvailableFieldType::String),
+                                dart_type: DartType::String,
                                 nullable: true,
                                 is_final: true,
                             }]),
@@ -229,16 +296,21 @@ pub(crate) fn generate_sample_config(
                     use_case_type: UseCaseType::Command,
                 },
                 UseCaseConfig {
-                    name: String::from("Sample3"),
-                    dir_name: None,
-                    return_type: String::from("SampleReturnType3"),
-                    is_future_call: false,
+                    name: String::from("ForgotPassword"),
+                    dir_name: Some(String::from("auth")),
+                    return_type: DartType::Void,
+                    args: Some(vec![DartField {
+                        name: String::from("email"),
+                        dart_type: DartType::String,
+                        nullable: false,
+                        is_final: true,
+                    }]),
                     exceptions: vec![ExceptionConfig {
                         name: String::from("Sample"),
                         description: None,
-                        fields: Some(vec![DartClassField {
+                        fields: Some(vec![DartField {
                             name: String::from("message"),
-                            dart_type: DartType::Literal(DartAvailableFieldType::String),
+                            dart_type: DartType::String,
                             nullable: true,
                             is_final: true,
                         }]),
@@ -301,34 +373,45 @@ pub(crate) fn generate_sample_config(
                 RouteConfigType::ShellRoute(ShellRoutePathConfig {
                     name: String::from("Main"),
                     dir_name: Some(String::from("main")),
-                    shell_index_enum_names: vec![
+                    shell_index: ShellIndexType::Enum(vec![
                         String::from("SampleShell1"),
                         String::from("SampleShell2"),
                         String::from("SampleShell3"),
-                    ],
-                    shells: vec![
-                        RouteConfigType::RoutePath(RoutePathConfig {
-                            name: String::from("Sample1"),
-                            uri: Some(String::from("/sample1-url")),
-                            path_reg_exp: Some(String::from("^/sample1-url$")),
-                            children: None,
-                            dir_name: Some(String::from("main")),
-                        }),
-                        RouteConfigType::RoutePath(RoutePathConfig {
-                            name: String::from("Sample2"),
-                            uri: Some(String::from("/sample2-url")),
-                            path_reg_exp: Some(String::from("^/sample2-url$")),
-                            children: None,
-                            dir_name: Some(String::from("main")),
-                        }),
-                        RouteConfigType::RoutePath(RoutePathConfig {
-                            name: String::from("Sample3"),
-                            uri: Some(String::from("/sample3-url")),
-                            path_reg_exp: Some(String::from("^/sample3-url$")),
-                            children: None,
-                            dir_name: Some(String::from("main")),
-                        }),
-                    ],
+                    ]),
+                    shells: (vec![
+                        (
+                            String::from("SampleShell1"),
+                            RouteConfigType::RoutePath(RoutePathConfig {
+                                name: String::from("Sample1"),
+                                uri: Some(String::from("/sample1-url")),
+                                path_reg_exp: Some(String::from("^/sample1-url$")),
+                                children: None,
+                                dir_name: Some(String::from("main")),
+                            }),
+                        ),
+                        (
+                            String::from("SampleShell1"),
+                            RouteConfigType::RoutePath(RoutePathConfig {
+                                name: String::from("Sample2"),
+                                uri: Some(String::from("/sample2-url")),
+                                path_reg_exp: Some(String::from("^/sample2-url$")),
+                                children: None,
+                                dir_name: Some(String::from("main")),
+                            }),
+                        ),
+                        (
+                            String::from("SampleShell1"),
+                            RouteConfigType::RoutePath(RoutePathConfig {
+                                name: String::from("Sample3"),
+                                uri: Some(String::from("/sample3-url")),
+                                path_reg_exp: Some(String::from("^/sample3-url$")),
+                                children: None,
+                                dir_name: Some(String::from("main")),
+                            }),
+                        ),
+                    ])
+                    .into_iter()
+                    .collect(),
                 }),
             ],
             default_route_path: RouteConfigType::RoutePath(RoutePathConfig {
@@ -339,12 +422,23 @@ pub(crate) fn generate_sample_config(
                 children: None,
             }),
         },
-        provider_config: RiverpodConfig {
+        riverpod_config: RiverpodConfig {
             providers: Some(vec![
                 ProviderConfig {
                     name: String::from("Sample"),
                     dir_name: Some(String::from("auth")),
-                    state: DartType::Literal(DartAvailableFieldType::String),
+                    state: DartType::String,
+                    auto_dispose: true,
+                    family_type: None,
+                    provider_type: ProviderType::Provider,
+                },
+                ProviderConfig {
+                    name: String::from("Sample2"),
+                    dir_name: Some(String::from("main")),
+                    state: DartType::RefClass(DartClassRef {
+                        name: String::from("sample"),
+                        path: String::from("lib/domain/entity"),
+                    }),
                     auto_dispose: true,
                     family_type: None,
                     provider_type: ProviderType::Provider,
@@ -354,9 +448,9 @@ pub(crate) fn generate_sample_config(
                     dir_name: Some(String::from("main")),
                     state: DartType::NewClass(DartClass {
                         name: String::from("ClassName"),
-                        fields: Some(vec![DartClassField {
+                        fields: Some(vec![DartField {
                             name: String::from("sampleField"),
-                            dart_type: DartType::Literal(DartAvailableFieldType::Int),
+                            dart_type: DartType::Int,
                             nullable: false,
                             is_final: true,
                         }]),
@@ -371,34 +465,34 @@ pub(crate) fn generate_sample_config(
         domain_config: DomainConfig {
             entities: Some(vec![DartClass {
                 name: String::from("SampleClass"),
-                fields: Some(vec![DartClassField {
+                fields: Some(vec![DartField {
                     name: String::from("sampleField"),
-                    dart_type: DartType::Literal(DartAvailableFieldType::Int),
+                    dart_type: DartType::Int,
                     nullable: false,
                     is_final: true,
                 }]),
             }]),
             repositories: Some(vec![RepositoryConfig {
-                name: String::from("smpleRepository"),
+                name: String::from("smple"),
                 exceptions: Some(vec![ExceptionConfig {
                     name: String::from("sampleException"),
                     description: Some(String::from("これはサンプルの説明")),
-                    fields: Some(vec![DartClassField {
+                    fields: Some(vec![DartField {
                         name: String::from("field1"),
-                        dart_type: DartType::Literal(DartAvailableFieldType::Int),
+                        dart_type: DartType::Int,
                         nullable: false,
                         is_final: true,
                     }]),
                 }]),
             }]),
             services: Some(vec![ServiceConfig {
-                name: String::from("smpleRepository"),
+                name: String::from("smple"),
                 exceptions: Some(vec![ExceptionConfig {
                     name: String::from("sampleException"),
                     description: Some(String::from("これはサンプルの説明")),
-                    fields: Some(vec![DartClassField {
+                    fields: Some(vec![DartField {
                         name: String::from("field1"),
-                        dart_type: DartType::Literal(DartAvailableFieldType::Int),
+                        dart_type: DartType::Int,
                         nullable: false,
                         is_final: true,
                     }]),
@@ -407,9 +501,9 @@ pub(crate) fn generate_sample_config(
             common_exceptions: Some(vec![ExceptionConfig {
                 name: String::from("sampleException"),
                 description: Some(String::from("これはサンプルの説明")),
-                fields: Some(vec![DartClassField {
+                fields: Some(vec![DartField {
                     name: String::from("field1"),
-                    dart_type: DartType::Literal(DartAvailableFieldType::Int),
+                    dart_type: DartType::Int,
                     nullable: false,
                     is_final: true,
                 }]),

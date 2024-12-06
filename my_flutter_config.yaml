@@ -51,90 +51,100 @@ route_path_config:
   - !ShellRoute
     name: Main
     dir_name: main
-    shell_index_enum_names:
+    shell_index: !Enum
     - SampleShell1
     - SampleShell2
     - SampleShell3
     shells:
-    - !RoutePath
-      name: Sample1
-      dir_name: main
-      uri: /sample1-url
-      path_reg_exp: ^/sample1-url$
-      children: null
-    - !RoutePath
-      name: Sample2
-      dir_name: main
-      uri: /sample2-url
-      path_reg_exp: ^/sample2-url$
-      children: null
-    - !RoutePath
-      name: Sample3
-      dir_name: main
-      uri: /sample3-url
-      path_reg_exp: ^/sample3-url$
-      children: null
-use_case_config:
+      SampleShell1: !RoutePath
+        name: Sample3
+        dir_name: main
+        uri: /sample3-url
+        path_reg_exp: ^/sample3-url$
+        children: null
+application_config:
   use_cases:
-  - name: Sample
+  - name: signIn
     use_case_type: Query
-    return_type: SampleReturnType
-    is_future_call: true
+    return_type:
+      name: SignInUser
+      path: lib/domain/entity/auth
     dir_name: auth
+    args:
+    - name: email
+      dart_type: null
+      nullable: false
+      is_final: true
+    - name: password
+      dart_type: null
+      nullable: false
+      is_final: true
     exceptions:
     - name: Sample
       description: null
       fields:
       - name: message
-        dart_type: String
+        dart_type: null
         nullable: true
         is_final: true
     - name: Sample2
       description: null
       fields:
       - name: message
-        dart_type: String
+        dart_type: null
         nullable: true
         is_final: true
-  - name: Sample2
+  - name: SignOut
     use_case_type: Command
-    return_type: SampleReturnType2
-    is_future_call: false
-    dir_name: main
+    return_type: null
+    dir_name: auth
+    args: null
     exceptions:
     - name: Sample
       description: null
       fields:
       - name: message
-        dart_type: String
+        dart_type: null
         nullable: true
         is_final: true
     - name: Sample2
       description: null
       fields:
       - name: message
-        dart_type: String
+        dart_type: null
         nullable: true
         is_final: true
-  - name: Sample3
+  - name: ForgotPassword
     use_case_type: Command
-    return_type: SampleReturnType3
-    is_future_call: false
-    dir_name: null
+    return_type: null
+    dir_name: auth
+    args:
+    - name: email
+      dart_type: null
+      nullable: false
+      is_final: true
     exceptions:
     - name: Sample
       description: null
       fields:
       - name: message
-        dart_type: String
+        dart_type: null
         nullable: true
         is_final: true
-provider_config:
+riverpod_config:
   use_riverpod_generator: false
   providers:
   - name: Sample
     dir_name: auth
-    state: String
+    state: null
+    auto_dispose: true
+    family_type: null
+    provider_type: Provider
+  - name: Sample2
+    dir_name: main
+    state:
+      name: sample
+      path: lib/domain/entity
     auto_dispose: true
     family_type: null
     provider_type: Provider
@@ -144,7 +154,7 @@ provider_config:
       name: ClassName
       fields:
       - name: sampleField
-        dart_type: Int
+        dart_type: null
         nullable: false
         is_final: true
     auto_dispose: true
@@ -155,27 +165,27 @@ domain_config:
   - name: SampleClass
     fields:
     - name: sampleField
-      dart_type: Int
+      dart_type: null
       nullable: false
       is_final: true
   repositories:
-  - name: smpleRepository
+  - name: smple
     exceptions:
     - name: sampleException
       description: これはサンプルの説明
       fields:
       - name: field1
-        dart_type: Int
+        dart_type: null
         nullable: false
         is_final: true
   services:
-  - name: smpleRepository
+  - name: smple
     exceptions:
     - name: sampleException
       description: これはサンプルの説明
       fields:
       - name: field1
-        dart_type: Int
+        dart_type: null
         nullable: false
         is_final: true
   common_exceptions:
@@ -183,6 +193,6 @@ domain_config:
     description: これはサンプルの説明
     fields:
     - name: field1
-      dart_type: Int
+      dart_type: null
       nullable: false
       is_final: true
