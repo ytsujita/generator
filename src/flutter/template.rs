@@ -29,6 +29,7 @@ pub(crate) fn generate_files(
                 skip_all_conflict_files,
             )?;
             super::template_widget::generate_widget(
+                &config.application_name,
                 &config.route_path_config,
                 overwrite_all_conflict_files,
                 skip_all_conflict_files,

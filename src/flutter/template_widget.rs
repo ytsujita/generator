@@ -1,6 +1,7 @@
 use askama::Template;
 use change_case::snake_case;
 
+use super::config::ShellIndexType;
 use super::template_navigation::{get_route_from_config, get_shell_route_from_config};
 use crate::flutter::config::{NavigationConfig, RoutePathConfig, ShellRoutePathConfig};
 use crate::utils::create_file;
@@ -26,10 +27,13 @@ pub(super) struct RouteWidgetTemplate<'a> {
 #[derive(Template)]
 #[template(path = "flutter/lib/widget/page/shell_widget.dart", escape = "none")]
 pub(super) struct ShellRouteWidgetTemplate<'a> {
+    pub(super) application_name: &'a str,
     pub(super) shell_name: &'a str,
+    pub(super) index_type: &'a ShellIndexType,
 }
 
 pub(super) fn generate_widget(
+    application_name: &str,
     route_path_config: &NavigationConfig,
     overwrite_all_conflict_files: bool,
     skip_all_conflict_files: bool,
@@ -68,7 +72,9 @@ pub(super) fn generate_widget(
     }
     for shell_path in shell_paths {
         let template = ShellRouteWidgetTemplate {
+            application_name,
             shell_name: &shell_path.name,
+            index_type: &shell_path.shell_index,
         };
         let render_result = template.render().unwrap();
         let file_name = match &shell_path.dir_name {

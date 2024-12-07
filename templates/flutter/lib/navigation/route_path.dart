@@ -40,13 +40,29 @@ sealed class RoutePath extends BaseRoutePath {
       return const {{ default_route_path_name }}RoutePath();
     }
     {%- for route_path in route_paths -%}
-    {%- match route_path.path_reg_exp -%}
-    {%- when Some with (uri) %}
+      {%- match route_path.path_reg_exp -%}
+        {%- when Some with (uri) %}
     if (RegExp({{ route_path.name }}RoutePath.pathRegExp).hasMatch(uri.path)) {
-      return const {{ route_path.name }}RoutePath();
+      {%- match route_path.fields -%}
+        {%- when Some with (fields) -%}
+          {%- for field in fields %}
+      final {{ field.name|camel }} = uri.queryParameters['{{ field.name }}'];
+          {%- endfor -%}
+        {%- when None -%}
+      {%- endmatch %}
+      {%- match route_path.fields -%}
+        {%- when Some with (fields) %}
+      return {{ route_path.name|pascal }}RoutePath(
+        {%- for field in fields %}
+        {{ field.name|camel }}: {{ field.name|camel }}{% if !field.nullable %}!{% endif %},
+        {%- endfor %}
+      );
+        {%- when None %}
+      return const {{ route_path.name|pascal }}RoutePath();
+      {%- endmatch %}
     }
-    {%- when None -%}
-    {%- endmatch -%}
+        {%- when None -%}
+      {%- endmatch -%}
     {% endfor %}
     return const {{ default_route_path_name }}RoutePath();
   }
@@ -56,7 +72,7 @@ sealed class RoutePath extends BaseRoutePath {
 {% for shell_route_path in shell_route_paths -%}
 {% match shell_route_path.shell_index %}
   {% when ShellIndexType::Enum with (val) %}
-enum {{ shell_route_path.name }}ShellIndex {
+enum {{ shell_route_path.name|pascal }}ShellIndex {
   {%- for enum_name in val %}
   {{ enum_name|camel }},
   {%- endfor %}
@@ -65,7 +81,16 @@ enum {{ shell_route_path.name }}ShellIndex {
   {%- when _ -%}
 {% endmatch %}
 
-class {{ shell_route_path.name|pascal }}ShellRoutePath extends ShellRoutePath<{{ shell_route_path.name|pascal }}ShellIndex> {
+class {{ shell_route_path.name|pascal }}ShellRoutePath extends ShellRoutePath<
+{%- match shell_route_path.shell_index -%}
+  {%- when ShellIndexType::Enum with (val) -%}
+    {{ shell_route_path.name|pascal }}ShellIndex
+  {%- when ShellIndexType::String -%}
+    String
+  {%- when ShellIndexType::Int -%}
+    int
+{%- endmatch -%}
+> {
   const {{ shell_route_path.name|pascal }}ShellRoutePath({
     required super.pathStack,
     required super.selectedIndex,
@@ -98,11 +123,31 @@ class {{ shell_route_path.name|pascal }}ShellRoutePath extends ShellRoutePath<{{
 
 {%- for route_path in route_paths %}
 class {{ route_path.name|pascal }}RoutePath extends RoutePath {
-  const {{ route_path.name|pascal }}RoutePath();
-  {%- match route_path.path_reg_exp %}
-  {% when Some with (uri) %}
+  const {{ route_path.name|pascal }}RoutePath(
+    {%- match route_path.fields %}
+      {% when Some with (val) %}{
+        {%- for field in val -%}
+          {%- if field.is_final && !field.nullable %}
+    required this.{{ field.name|camel }},
+          {%- else %}
+    this.{{ field.name|camel }}
+          {%- endif -%}
+        {%- endfor %}
+  }
+      {%- when None -%}
+    {%- endmatch -%}
+  );
+  {%- match route_path.path_reg_exp -%}
+    {%- when Some with (uri) %}
   static const String pathRegExp = r'{{ uri }}';
-  {%- when None -%}
+    {%- when None -%}
+  {%- endmatch %}
+  {%- match route_path.fields -%}
+    {%- when Some with (fields) -%}
+      {%- for field in fields %}
+  {% if field.is_final %}final {% endif %}{{ field.dart_type }}{% if field.nullable %}?{% endif %} {{ field.name }};
+      {%- endfor -%}
+    {%- when None -%}
   {%- endmatch %}
 
   @override

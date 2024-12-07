@@ -125,7 +125,7 @@ pub(crate) enum ProviderType {
     StreamNotifierProvider,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) enum DartType {
     Int,
     Double,
@@ -363,33 +363,33 @@ impl<'de> Deserialize<'de> for DartType {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub(crate) struct DartFunc {
     pub(crate) return_type: DartType,
     pub(crate) args: Vec<DartArg>,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub(crate) struct DartArg {
     pub(crate) name: String,
     pub(crate) required: bool,
     pub(crate) arg_type: DartType,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub(crate) struct DartClassRef {
     pub(crate) name: String,
     pub(crate) path: String,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub(crate) struct DartClass {
     pub(crate) name: String,
     pub(crate) is_immutable: bool,
     pub(crate) fields: Option<Vec<DartField>>,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub(crate) struct DartField {
     pub(crate) name: String,
     pub(crate) dart_type: DartType,
@@ -624,18 +624,23 @@ pub(crate) fn generate_sample_config(
                             String::from("SampleShell1"),
                             RouteConfigType::RoutePath(RoutePathConfig {
                                 name: String::from("Sample1"),
-                                uri: Some(String::from("/sample1-url")),
+                                uri: Some(String::from("/sample1-url1")),
                                 path_reg_exp: Some(String::from("^/sample1-url$")),
                                 children: None,
-                                fields: None,
+                                fields: Some(vec![DartField {
+                                    name: String::from("id"),
+                                    dart_type: DartType::String,
+                                    nullable: false,
+                                    is_final: true,
+                                }]),
                                 dir_name: Some(String::from("main")),
                             }),
                         ),
                         (
-                            String::from("SampleShell1"),
+                            String::from("SampleShell2"),
                             RouteConfigType::RoutePath(RoutePathConfig {
                                 name: String::from("Sample2"),
-                                uri: Some(String::from("/sample2-url")),
+                                uri: Some(String::from("/sample2-url2")),
                                 path_reg_exp: Some(String::from("^/sample2-url$")),
                                 fields: None,
                                 children: None,
@@ -643,7 +648,7 @@ pub(crate) fn generate_sample_config(
                             }),
                         ),
                         (
-                            String::from("SampleShell1"),
+                            String::from("SampleShell3"),
                             RouteConfigType::RoutePath(RoutePathConfig {
                                 name: String::from("Sample3"),
                                 uri: Some(String::from("/sample3-url")),
@@ -720,7 +725,7 @@ pub(crate) fn generate_sample_config(
                 }]),
             }]),
             repositories: Some(vec![RepositoryConfig {
-                name: String::from("smple"),
+                name: String::from("sample"),
                 exceptions: Some(vec![ExceptionConfig {
                     name: String::from("sampleException"),
                     description: Some(String::from("これはサンプルの説明")),
@@ -733,7 +738,7 @@ pub(crate) fn generate_sample_config(
                 }]),
             }]),
             services: Some(vec![ServiceConfig {
-                name: String::from("smple"),
+                name: String::from("sample"),
                 exceptions: Some(vec![ExceptionConfig {
                     name: String::from("sampleException"),
                     description: Some(String::from("これはサンプルの説明")),

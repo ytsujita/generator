@@ -36,11 +36,10 @@ class MainRouteInformationParser
     RouteInformation routeInformation,
     BuildContext context,
   ) async {
-    final x = NavigationState.fromUri(
+    return NavigationState.fromUri(
       uri: routeInformation.uri,
       previousState: _ref.read(navigationStateProvider),
     );
-    return x;
   }
 
   /// アプリの状態からパスを更新するためのメソッド, webでは実装が必須

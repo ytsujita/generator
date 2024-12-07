@@ -30,9 +30,12 @@ fn convert_imports_to_relative(
     let mut new_content = content.clone();
     for cap in import_regex.captures_iter(&content) {
         let package_path = &cap[1];
-        let relative_path = format!(".{}", package_path.replace('.', "/"));
+        println!("{}", package_path);
+        let file_name = file_path.to_str().unwrap().replace("\\", "/");
+        println!("{}", file_name);
+        let result = get_relative_path(&file_name[3..], package_path);
         let import_statement = format!("import 'package:{}{}';", project_name, package_path);
-        let new_import_statement = format!("import '{}.dart';", relative_path);
+        let new_import_statement = format!("import '{}';", result);
         new_content = new_content.replace(&import_statement, &new_import_statement);
     }
     let mut file = File::create(file_path)?;
@@ -51,4 +54,22 @@ fn process_directory(dir: &Path, project_name: &str) -> Result<(), Box<dyn std::
         }
     }
     Ok(())
+}
+
+fn get_relative_path<'a>(from: &'a str, to: &'a str) -> String {
+    let from_parts: Vec<&str> = from.split('/').collect();
+    let to_parts: Vec<&str> = to.split('/').collect();
+    let mut common_prefix_length = 0;
+    for (from_part, to_part) in from_parts.iter().zip(&to_parts) {
+        if from_part == to_part {
+            common_prefix_length += 1;
+        } else {
+            break;
+        }
+    }
+    let mut result = vec![".."; from_parts.len() - common_prefix_length - 1];
+    for part in &to_parts[common_prefix_length..] {
+        result.push(part);
+    }
+    result.join("/")
 }

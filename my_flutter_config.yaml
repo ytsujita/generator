@@ -65,11 +65,30 @@ route_path_config:
     - SampleShell2
     - SampleShell3
     shells:
-      SampleShell1: !RoutePath
+      SampleShell3: !RoutePath
         name: Sample3
         dir_name: main
         uri: /sample3-url
         path_reg_exp: ^/sample3-url$
+        fields: null
+        children: null
+      SampleShell1: !RoutePath
+        name: Sample1
+        dir_name: main
+        uri: /sample1-url1
+        path_reg_exp: ^/sample1-url$
+        fields:
+        - name: id
+          dart_type:
+            type: String
+          nullable: false
+          is_final: true
+        children: null
+      SampleShell2: !RoutePath
+        name: Sample2
+        dir_name: main
+        uri: /sample2-url2
+        path_reg_exp: ^/sample2-url$
         fields: null
         children: null
 application_config:

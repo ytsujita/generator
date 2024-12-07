@@ -4,7 +4,7 @@ use crate::flutter::config::{
 use crate::utils::create_file;
 use askama::Template;
 
-use super::config::ShellIndexType;
+use super::config::{DartField, ShellIndexType};
 
 mod filters {
     use change_case::{camel_case, pascal_case, snake_case};
@@ -27,6 +27,7 @@ pub(super) struct Route {
     pub(super) uri: Option<String>,
     pub(super) path_reg_exp: Option<String>,
     pub(super) dir_name: Option<String>,
+    pub(super) fields: Option<Vec<DartField>>,
 }
 
 pub(super) struct ShellRoute {
@@ -92,6 +93,7 @@ pub(super) fn generate_navigation(
             uri: route_path.uri.clone(),
             path_reg_exp: route_path.path_reg_exp.clone(),
             dir_name: route_path.dir_name.clone(),
+            fields: route_path.fields.clone(),
         })
     }
     for shell_path in shell_paths {

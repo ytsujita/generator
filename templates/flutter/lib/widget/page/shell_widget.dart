@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../navigation/route_path.dart';
-import '../../components/not_found_page.dart';
+import 'package:{{ application_name }}/navigation/route_path.dart';
+import 'package:{{ application_name }}/widget/components/not_found_page.dart';
 
 final {{ shell_name|camel }}ShellNavigatorKeyProvider =
-    Provider.family<GlobalKey<NavigatorState>, int>((ref, index) {
+    Provider.family<GlobalKey<NavigatorState>, {% match index_type -%}
+  {%- when ShellIndexType::Enum with (val) -%}
+    {{ shell_name|pascal }}ShellIndex
+  {%- when ShellIndexType::String -%}
+    String
+  {%- when ShellIndexType::Int -%}
+    int
+{%- endmatch -%}
+>((ref, index) {
   return GlobalKey<NavigatorState>();
 });
 
@@ -16,8 +24,22 @@ class {{ shell_name|pascal }}Widget extends ConsumerWidget {
     required this.selectedIndex,
     required this.pathStack,
   });
-  final {{ shell_name|pascal }}ShellIndex selectedIndex;
-  final Map<{{ shell_name|pascal }}ShellIndex, List<BaseRoutePath>> pathStack;
+  final {% match index_type -%}
+  {%- when ShellIndexType::Enum with (val) -%}
+    {{ shell_name|pascal }}ShellIndex
+  {%- when ShellIndexType::String -%}
+    String
+  {%- when ShellIndexType::Int -%}
+    int
+{%- endmatch %} selectedIndex;
+  final Map<{% match index_type -%}
+  {%- when ShellIndexType::Enum with (val) -%}
+    {{ shell_name|pascal }}ShellIndex
+  {%- when ShellIndexType::String -%}
+    String
+  {%- when ShellIndexType::Int -%}
+    int
+{%- endmatch %}, List<BaseRoutePath>> pathStack;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

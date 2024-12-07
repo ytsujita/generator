@@ -1,4 +1,5 @@
 use askama::Template;
+use change_case::snake_case;
 
 use crate::utils::create_file;
 
@@ -46,11 +47,12 @@ pub(super) fn generate_providers(
             let file_name = match &provider_config.dir_name {
                 Some(v) => format!(
                     "lib/provider/notifier/{}/{}_provider.dart",
-                    v, provider_config.name,
+                    v,
+                    &snake_case(&provider_config.name),
                 ),
                 None => format!(
                     "lib/provider/notifier/{}_provider.dart",
-                    provider_config.name,
+                    &snake_case(&provider_config.name),
                 ),
             };
             create_file(
