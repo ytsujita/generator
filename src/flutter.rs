@@ -3,6 +3,7 @@ pub mod format;
 pub mod init;
 pub mod template;
 pub mod template_domain;
+pub mod template_i18n;
 pub mod template_navigation;
 pub mod template_provider;
 pub mod template_use_case;

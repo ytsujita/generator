@@ -32,6 +32,14 @@ pub(super) struct ShellRouteWidgetTemplate<'a> {
     pub(super) index_type: &'a ShellIndexType,
 }
 
+#[derive(Template)]
+#[template(path = "flutter/test/widget/widget_test.dart", escape = "none")]
+pub(super) struct WidgetTestTemplate<'a> {
+    pub(super) file_name: &'a str,
+    pub(super) application_name: &'a str,
+    pub(super) widget_name: &'a str,
+}
+
 pub(super) fn generate_widget(
     application_name: &str,
     route_path_config: &NavigationConfig,
@@ -69,6 +77,30 @@ pub(super) fn generate_widget(
             overwrite_all_conflict_files,
             skip_all_conflict_files,
         )?;
+        let file_name = match &route_path.dir_name {
+            Some(val) => {
+                format!(
+                    "test/widget/page/{}/{}.dart",
+                    snake_case(val),
+                    snake_case(&route_path.name),
+                )
+            }
+            None => {
+                format!("test/widget/page/{}.dart", snake_case(&route_path.name),)
+            }
+        };
+        let widget_test_template = WidgetTestTemplate {
+            file_name: &file_name,
+            application_name,
+            widget_name: &route_path.name,
+        };
+        let widget_test_render_result = widget_test_template.render().unwrap();
+        create_file(
+            file_name.as_str(),
+            widget_test_render_result.as_bytes(),
+            overwrite_all_conflict_files,
+            skip_all_conflict_files,
+        )?;
     }
     for shell_path in shell_paths {
         let template = ShellRouteWidgetTemplate {
@@ -92,6 +124,30 @@ pub(super) fn generate_widget(
         create_file(
             file_name.as_str(),
             render_result.as_bytes(),
+            overwrite_all_conflict_files,
+            skip_all_conflict_files,
+        )?;
+        let file_name = match &shell_path.dir_name {
+            Some(val) => {
+                format!(
+                    "test/widget/page/{}/{}.dart",
+                    snake_case(val),
+                    snake_case(&shell_path.name)
+                )
+            }
+            None => {
+                format!("test/widget/page/{}.dart", snake_case(&shell_path.name))
+            }
+        };
+        let widget_test_template = WidgetTestTemplate {
+            file_name: &file_name,
+            application_name,
+            widget_name: &shell_path.name,
+        };
+        let widget_test_render_result = widget_test_template.render().unwrap();
+        create_file(
+            file_name.as_str(),
+            widget_test_render_result.as_bytes(),
             overwrite_all_conflict_files,
             skip_all_conflict_files,
         )?;

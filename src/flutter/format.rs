@@ -30,9 +30,7 @@ fn convert_imports_to_relative(
     let mut new_content = content.clone();
     for cap in import_regex.captures_iter(&content) {
         let package_path = &cap[1];
-        println!("{}", package_path);
         let file_name = file_path.to_str().unwrap().replace("\\", "/");
-        println!("{}", file_name);
         let result = get_relative_path(&file_name[3..], package_path);
         let import_statement = format!("import 'package:{}{}';", project_name, package_path);
         let new_import_statement = format!("import '{}';", result);

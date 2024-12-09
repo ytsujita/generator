@@ -30,13 +30,7 @@
 ## TODO
 
 - flutter
-    - `route_path`に変数を保持できるようにする
     - `fromRoutePath`のデフォルト初期構築を実装
-    - shellのindexのタイプを切り替えられるように実装
-    - `flutter pub add`を実行させる
-    - `dart fix --apply`を実行させる
-    - `flutter pub run import_sorter:main`を実行させる
-    - `package:{my_app}`のimportを相対に変換する
     - slangなどでl10nのファイルをわかりやすくする
     - providerの自動生成の実装
     - RepositoryとServiceの自動生成実装

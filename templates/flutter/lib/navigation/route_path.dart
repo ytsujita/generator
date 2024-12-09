@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 {%- for route_path in route_paths -%}
 {%- match route_path.dir_name -%}
 {%- when Some with (dir) %}
-import '../widget/page/{{ dir|snake }}/{{ route_path.name|snake }}.dart';
+import 'package:{{ application_name|snake }}/widget/page/{{ dir|snake }}/{{ route_path.name|snake }}.dart';
 {%- when None -%}
-import '../widget/page/{{ route_path.name|snake }}.dart';
+import 'package:{{ application_name|snake }}/widget/page/{{ route_path.name|snake }}.dart';
 {%- endmatch -%}
 {% endfor %}
 {%- for route_path in shell_route_paths -%}
 {%- match route_path.dir_name -%}
 {%- when Some with (dir) %}
-import '../widget/page/{{ dir|snake }}/{{ route_path.name|snake }}.dart';
+import 'package:{{ application_name|snake }}/widget/page/{{ dir|snake }}/{{ route_path.name|snake }}.dart';
 {%- when None -%}
-import '../widget/page/{{ route_path.name|snake }}.dart';
+import 'package:{{ application_name|snake }}/widget/page/{{ route_path.name|snake }}.dart';
 {%- endmatch -%}
 {% endfor %}
 
@@ -107,7 +107,16 @@ class {{ shell_route_path.name|pascal }}ShellRoutePath extends ShellRoutePath<
   }
 
   @override
-  ShellRoutePath<{{ shell_route_path.name|pascal }}ShellIndex>? pop() {
+  ShellRoutePath<
+{%- match shell_route_path.shell_index -%}
+  {%- when ShellIndexType::Enum with (val) -%}
+    {{ shell_route_path.name|pascal }}ShellIndex
+  {%- when ShellIndexType::String -%}
+    String
+  {%- when ShellIndexType::Int -%}
+    int
+{%- endmatch -%}
+>? pop() {
     final targetIndexStack = pathStack[selectedIndex];
     final newTargetIndexStack = targetIndexStack?..removeLast();
     if (newTargetIndexStack == null || newTargetIndexStack.isEmpty) {
@@ -120,8 +129,7 @@ class {{ shell_route_path.name|pascal }}ShellRoutePath extends ShellRoutePath<
   }
 }
 {%- endfor %}
-
-{%- for route_path in route_paths %}
+{% for route_path in route_paths %}
 class {{ route_path.name|pascal }}RoutePath extends RoutePath {
   const {{ route_path.name|pascal }}RoutePath(
     {%- match route_path.fields %}

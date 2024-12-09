@@ -478,7 +478,7 @@ pub(crate) fn generate_sample_config(
                     ]),
                     exceptions: vec![
                         ExceptionConfig {
-                            name: String::from("Sample"),
+                            name: String::from("InternalServerError"),
                             description: None,
                             fields: Some(vec![DartField {
                                 name: String::from("message"),
@@ -488,7 +488,7 @@ pub(crate) fn generate_sample_config(
                             }]),
                         },
                         ExceptionConfig {
-                            name: String::from("Sample2"),
+                            name: String::from("NetworkNotAvailable"),
                             description: None,
                             fields: Some(vec![DartField {
                                 name: String::from("message"),
@@ -507,7 +507,7 @@ pub(crate) fn generate_sample_config(
                     args: None,
                     exceptions: vec![
                         ExceptionConfig {
-                            name: String::from("Sample"),
+                            name: String::from("InternalServerError"),
                             description: None,
                             fields: Some(vec![DartField {
                                 name: String::from("message"),
@@ -517,7 +517,7 @@ pub(crate) fn generate_sample_config(
                             }]),
                         },
                         ExceptionConfig {
-                            name: String::from("Sample2"),
+                            name: String::from("NetworkNotAvailable"),
                             description: None,
                             fields: Some(vec![DartField {
                                 name: String::from("message"),
@@ -540,7 +540,7 @@ pub(crate) fn generate_sample_config(
                         is_final: true,
                     }]),
                     exceptions: vec![ExceptionConfig {
-                        name: String::from("Sample"),
+                        name: String::from("NetworkNotAvailable"),
                         description: None,
                         fields: Some(vec![DartField {
                             name: String::from("message"),
@@ -615,17 +615,17 @@ pub(crate) fn generate_sample_config(
                     name: String::from("Main"),
                     dir_name: Some(String::from("main")),
                     shell_index: ShellIndexType::Enum(vec![
-                        String::from("SampleShell1"),
-                        String::from("SampleShell2"),
-                        String::from("SampleShell3"),
+                        String::from("One"),
+                        String::from("Two"),
+                        String::from("Three"),
                     ]),
                     shells: (vec![
                         (
-                            String::from("SampleShell1"),
+                            String::from("One"),
                             RouteConfigType::RoutePath(RoutePathConfig {
-                                name: String::from("Sample1"),
-                                uri: Some(String::from("/sample1-url1")),
-                                path_reg_exp: Some(String::from("^/sample1-url$")),
+                                name: String::from("One"),
+                                uri: Some(String::from("/one-url1?id=$id")),
+                                path_reg_exp: Some(String::from("^/one-url?id=.+$")),
                                 children: None,
                                 fields: Some(vec![DartField {
                                     name: String::from("id"),
@@ -637,22 +637,22 @@ pub(crate) fn generate_sample_config(
                             }),
                         ),
                         (
-                            String::from("SampleShell2"),
+                            String::from("Two"),
                             RouteConfigType::RoutePath(RoutePathConfig {
-                                name: String::from("Sample2"),
-                                uri: Some(String::from("/sample2-url2")),
-                                path_reg_exp: Some(String::from("^/sample2-url$")),
+                                name: String::from("Two"),
+                                uri: Some(String::from("/two-url2")),
+                                path_reg_exp: Some(String::from("^/two-url$")),
                                 fields: None,
                                 children: None,
                                 dir_name: Some(String::from("main")),
                             }),
                         ),
                         (
-                            String::from("SampleShell3"),
+                            String::from("Three"),
                             RouteConfigType::RoutePath(RoutePathConfig {
-                                name: String::from("Sample3"),
-                                uri: Some(String::from("/sample3-url")),
-                                path_reg_exp: Some(String::from("^/sample3-url$")),
+                                name: String::from("Three"),
+                                uri: Some(String::from("/three-url")),
+                                path_reg_exp: Some(String::from("^/three-url$")),
                                 fields: None,
                                 children: None,
                                 dir_name: Some(String::from("main")),
@@ -675,36 +675,36 @@ pub(crate) fn generate_sample_config(
         riverpod_config: RiverpodConfig {
             providers: Some(vec![
                 ProviderConfig {
-                    name: String::from("Sample"),
+                    name: String::from("SignInFormState"),
                     dir_name: Some(String::from("auth")),
-                    state: DartType::String,
+                    state: DartType::NewClass(DartClass {
+                        name: String::from("SignInForm"),
+                        is_immutable: true,
+                        fields: Some(vec![
+                            DartField {
+                                name: String::from("email"),
+                                dart_type: DartType::String,
+                                nullable: false,
+                                is_final: true,
+                            },
+                            DartField {
+                                name: String::from("password"),
+                                dart_type: DartType::String,
+                                nullable: false,
+                                is_final: true,
+                            },
+                        ]),
+                    }),
                     auto_dispose: true,
                     family_type: None,
-                    provider_type: ProviderType::Provider,
+                    provider_type: ProviderType::NotifierProvider,
                 },
                 ProviderConfig {
-                    name: String::from("Sample2"),
+                    name: String::from("xxx"),
                     dir_name: Some(String::from("main")),
                     state: DartType::RefClass(DartClassRef {
                         name: String::from("sample"),
                         path: String::from("lib/domain/entity"),
-                    }),
-                    auto_dispose: true,
-                    family_type: None,
-                    provider_type: ProviderType::Provider,
-                },
-                ProviderConfig {
-                    name: String::from("Sample2"),
-                    dir_name: Some(String::from("main")),
-                    state: DartType::NewClass(DartClass {
-                        name: String::from("ClassName"),
-                        is_immutable: true,
-                        fields: Some(vec![DartField {
-                            name: String::from("sampleField"),
-                            dart_type: DartType::Int,
-                            nullable: false,
-                            is_final: true,
-                        }]),
                     }),
                     auto_dispose: true,
                     family_type: None,

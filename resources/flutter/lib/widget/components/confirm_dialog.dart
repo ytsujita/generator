@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../common/extension/l10n_loc.dart';
-import 'button.dart';
+import '../../common/extension/i18n_loc.dart';
 
 class ConfirmDialog extends StatelessWidget {
   const ConfirmDialog({required this.action, super.key});
@@ -11,15 +10,15 @@ class ConfirmDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(action),
-      content: Text(context.loc.confirmMessage(action)),
+      content: Text(context.i18n.components.confirmMessage(action: action)),
       actions: [
-        CancelButton(
+        ElevatedButton(
           onPressed: () => Navigator.pop(context, false),
-          child: Text(context.loc.cancel),
+          child: Text(context.i18n.components.cancel),
         ),
-        ActionButton(
+        ElevatedButton(
           onPressed: () => Navigator.pop(context, true),
-          child: Text(context.loc.signOut),
+          child: Text(context.i18n.components.signOut),
         ),
       ],
     );

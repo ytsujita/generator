@@ -1,0 +1,4 @@
+confirmMessage: Are you sure you want to ${action}?
+signOut: Sign Out
+cancel: Cancel
+

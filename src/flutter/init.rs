@@ -35,7 +35,7 @@ pub(crate) fn init_flutter_app(
         skip_conflict_files,
     )?;
     println!("{}", "completed!".green());
-    println!("{}", "Please run below commands!".green());
+    println!("{}", "Please run below commands!".blue());
     let args = vec![
         "flutter_hooks",
         "hooks_riverpod",
@@ -58,7 +58,12 @@ pub(crate) fn init_flutter_app(
         "dev:rename_app",
         "dev:source_gen",
     ];
-    println!("flutter pub add {}", args.join(" "));
+    println!("> flutter pub add {}", args.join(" "));
+    println!("> flutter pub get");
+    println!("> dart run slang");
+    println!("> dart fix --apply");
+    println!("> dart format .");
+    println!("> flutter pub run import_sorter:main");
     Ok(())
 }
 

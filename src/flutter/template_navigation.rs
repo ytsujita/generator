@@ -39,6 +39,7 @@ pub(super) struct ShellRoute {
 #[derive(Template)]
 #[template(path = "flutter/lib/navigation/route_path.dart", escape = "none")]
 struct RoutePathTemplate<'a> {
+    pub(super) application_name: &'a str,
     pub(super) route_paths: &'a Vec<&'a Route>,
     pub(super) shell_route_paths: &'a Vec<&'a ShellRoute>,
     pub(super) default_route_path_name: &'a str,
@@ -73,6 +74,7 @@ struct NavigationStateTemplate {
 }
 
 pub(super) fn generate_navigation(
+    application_name: &str,
     route_path_config: &NavigationConfig,
     overwrite_all_conflict_files: bool,
     skip_all_conflict_files: bool,
@@ -104,6 +106,7 @@ pub(super) fn generate_navigation(
         })
     }
     generate_route_path(
+        application_name,
         route_path_config,
         overwrite_all_conflict_files,
         skip_all_conflict_files,
@@ -134,6 +137,7 @@ pub(super) fn generate_navigation(
 }
 
 fn generate_route_path(
+    application_name: &str,
     route_path_config: &NavigationConfig,
     overwrite_conflict_file: bool,
     skip_conflict_file: bool,
@@ -141,6 +145,7 @@ fn generate_route_path(
     shell_template: &[ShellRoute],
 ) -> Result<(), Box<dyn std::error::Error>> {
     let route_path_template = RoutePathTemplate {
+        application_name,
         route_paths: &route_template.iter().collect(),
         shell_route_paths: &shell_template.iter().collect(),
         default_route_path_name: match &route_path_config.default_route_path {

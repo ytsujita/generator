@@ -77,11 +77,11 @@ pub(crate) fn input_yes(message: &str) -> bool {
     *"yes" == res || res == String::from('y')
 }
 
-// pub(crate) fn create_dir(path: &str) -> Result<(), Box<dyn std::error::Error>> {
-//     let path_buf = PathBuf::from(path);
-//     if path_buf.exists() {
-//         return Ok(());
-//     }
-//     fs::create_dir_all(path)?;
-//     Ok(())
-// }
+pub(crate) fn create_dir(path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let path_buf = PathBuf::from(path);
+    if path_buf.exists() {
+        return Ok(());
+    }
+    fs::create_dir_all(path)?;
+    Ok(())
+}

@@ -6,10 +6,14 @@ use crate::utils::create_file;
 use super::config::{DartType, ProviderType, RiverpodConfig};
 
 mod filters {
-    use change_case::camel_case;
+    use change_case::{camel_case, pascal_case};
 
     pub fn camel<T: std::fmt::Display>(s: T) -> ::askama::Result<String> {
         Ok(camel_case(&(s.to_string())))
+    }
+
+    pub fn pascal<T: std::fmt::Display>(s: T) -> ::askama::Result<String> {
+        Ok(pascal_case(&(s.to_string())))
     }
 }
 

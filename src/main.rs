@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
+mod dynamodb;
 mod flutter;
-mod python;
 mod terraform;
 mod utils;
 

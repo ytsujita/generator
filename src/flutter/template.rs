@@ -13,6 +13,7 @@ pub(crate) fn generate_files(
         Ok(config_str) => {
             let config: Config = serde_yaml::from_str(config_str.as_str()).unwrap();
             super::template_navigation::generate_navigation(
+                &config.application_name,
                 &config.route_path_config,
                 overwrite_all_conflict_files,
                 skip_all_conflict_files,
@@ -40,6 +41,12 @@ pub(crate) fn generate_files(
                 overwrite_all_conflict_files,
                 skip_all_conflict_files,
             )?;
+            super::template_i18n::generate_i18n(
+                &config.route_path_config,
+                overwrite_all_conflict_files,
+                skip_all_conflict_files,
+            )?;
+            super::format::format_import()?;
             Ok(())
         }
         Err(e) => {
