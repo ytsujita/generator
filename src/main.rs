@@ -54,7 +54,14 @@ enum FlutterMode {
 
 #[derive(Subcommand, Debug, Clone)]
 enum TerraformMode {
-    Init,
+    Init {
+        /// Overwrite all conflict files.
+        #[arg(short)]
+        overwrite_conflict_files: bool,
+        /// Skip all conflict files.
+        #[arg(short)]
+        skip_conflict_config_files: bool,
+    },
     Gen,
 }
 
@@ -92,7 +99,13 @@ fn main() {
         }
         GenType::Terraform { mode } => {
             let _ = match mode {
-                TerraformMode::Init => terraform::init::init_terraform_project(),
+                TerraformMode::Init {
+                    overwrite_conflict_files,
+                    skip_conflict_config_files,
+                } => terraform::init::init_terraform_project(
+                    overwrite_conflict_files,
+                    skip_conflict_config_files,
+                ),
                 TerraformMode::Gen => Ok(()),
             };
             Ok(())
