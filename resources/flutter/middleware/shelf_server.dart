@@ -112,7 +112,7 @@ Map<String, String> _parseSetCookieString(String s) {
     'refresh',
   ];
   final cookies = <String, String>{};
-  final splitCookies = s.split(RegExp(r'[;, ]'));
+  final splitCookies = s.split(RegExp('[;, ]'));
   for (final setCookie in splitCookies) {
     final cookie = setCookie.split('=');
     if (cookie.length == 2 && targetCookieKey.contains(cookie[0])) {
