@@ -1,5 +1,5 @@
 [package]
-name = "my_generator"
+name = "easy_gen"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,6 +9,7 @@ change-case = "0.2.0"
 clap = { version = "4.5.21", features = ["derive"] }
 colored = "2.1.0"
 dialoguer = "0.11.0"
+git2 = "0.19.0"
 include_dir = { version = "0.7.4", features = ["glob"] }
 regex = "1.11.1"
 serde = { version = "1.0.215", features = ["derive"] }

@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+mod config;
 mod dynamodb;
 mod flutter;
 mod terraform;
@@ -29,7 +30,11 @@ enum GenType {
         #[command(subcommand)]
         mode: TerraformMode,
     },
-    Python,
+    Config {
+        /// Overwrite config files.
+        #[arg(short)]
+        overwrite_conflict_file: bool,
+    },
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -68,6 +73,8 @@ enum TerraformMode {
     },
     Gen,
 }
+
+static APPLICATION_NAME: &str = "easy_gen";
 
 fn main() {
     let args = Args::parse();
@@ -119,7 +126,9 @@ fn main() {
             };
             Ok(())
         }
-        GenType::Python => Ok(()),
+        GenType::Config {
+            overwrite_conflict_file,
+        } => config::init::init_config_file(overwrite_conflict_file),
     };
     match result {
         Ok(_) => println!("{}", "done".green()),
