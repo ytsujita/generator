@@ -1,0 +1,7 @@
+{
+	"recommendations": [
+		"biomejs.biome",
+		"hashicorp.terraform",
+		"erd0s.terraform-autocomplete"
+	]
+}

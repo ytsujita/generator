@@ -1,0 +1,27 @@
+{
+	"cSpell.words": [
+		"authtype",
+		"gatewayresponse",
+		"jsonencode",
+		"mamorimo",
+		"nosniff",
+		"openapi",
+		"querystring",
+		"redocly",
+		"templatefile"
+	],
+	"[javascript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[terraform]": {
+		"editor.defaultFormatter": "hashicorp.terraform"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"editor.formatOnSave": true,
+	"editor.codeActionsOnSave": {
+		"source.organizeImports.biome": "always",
+		"quickfix.biome": "always"
+	}
+}

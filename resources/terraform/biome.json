@@ -1,0 +1,15 @@
+{
+	"json": {
+		"parser": {
+			"allowTrailingCommas": false
+		},
+		"formatter": {
+			"trailingCommas": "none"
+		}
+	},
+	"formatter": {
+		"attributePosition": "multiline",
+		"formatWithErrors": true,
+		"indentWidth": 4
+	}
+}
