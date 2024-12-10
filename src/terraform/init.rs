@@ -31,8 +31,11 @@ pub(crate) fn init_terraform_project(
     for region in AwsRegion::iter() {
         regions.push(format!("{}", region));
     }
-    println!("Region Name:");
-    let choice: usize = Select::new().items(&regions).default(16).interact()?;
+    let choice: usize = Select::new()
+        .with_prompt("Region Name")
+        .items(&regions)
+        .default(15)
+        .interact()?;
     let region_name: &str = &regions[choice];
     let envs = ["dev", "test", "prod"];
     for env in envs {
