@@ -74,6 +74,7 @@ fn main() {
     let new_dir = Path::new(args.dir.as_str());
     if let Err(e) = env::set_current_dir(new_dir) {
         eprintln!("Failed to change directory. {}", e);
+        return;
     }
     let result = match args.gen_type {
         GenType::Flutter { mode } => {
