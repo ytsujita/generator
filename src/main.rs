@@ -5,6 +5,7 @@ mod terraform;
 mod utils;
 
 use colored::Colorize;
+use std::env;
 use std::path::Path;
 
 #[derive(Parser, Debug)]
@@ -13,6 +14,9 @@ struct Args {
     /// Generate type
     #[command(subcommand)]
     gen_type: GenType,
+    /// target dir
+    #[arg(default_value = ".", short = 'd', long = "dir")]
+    dir: String,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -67,6 +71,10 @@ enum TerraformMode {
 
 fn main() {
     let args = Args::parse();
+    let new_dir = Path::new(args.dir.as_str());
+    if let Err(e) = env::set_current_dir(new_dir) {
+        eprintln!("Failed to change directory. {}", e);
+    }
     let result = match args.gen_type {
         GenType::Flutter { mode } => {
             let pubspec_path = Path::new("pubspec.yaml");
