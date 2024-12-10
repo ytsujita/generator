@@ -12,6 +12,8 @@ use crate::utils::create_file;
 
 use dialoguer::{Input, Select};
 
+static SRC_DIR: Dir = include_dir!("resources/terraform/");
+
 pub(crate) fn init_terraform_project(
     overwrite_conflict_files: bool,
     skip_conflict_files: bool,
@@ -47,8 +49,6 @@ pub(crate) fn init_terraform_project(
     println!("> aws-vault exec {{profile name}} -- terraform init");
     Ok(())
 }
-
-static SRC_DIR: Dir = include_dir!("resources/terraform/");
 
 fn copy_dir_recursive(
     dst: &Path,
@@ -118,38 +118,38 @@ pub(super) struct ProviderTemplate<'a> {
 
 #[derive(Debug, EnumIter)]
 enum AwsRegion {
-    UsEast1,      // 米国東部 (バージニア北部)	不要
-    UsEast2,      // 米国東部 (オハイオ)	不要
-    UsWest1,      // 米国西部 (北カリフォルニア)	不要
-    UsWest2,      // 米国西部 (オレゴン)	不要
-    AfSouth1,     // アフリカ (ケープタウン)	必須
-    ApEast1,      // アジアパシフィック (香港)	必須
-    ApSouth2,     // アジアパシフィック (ハイデラバード)	必須
-    ApSoutheast3, // アジアパシフィック (ジャカルタ)	必須
-    ApSoutheast5, // アジアパシフィック (マレーシア)	必須
-    ApSoutheast4, // アジアパシフィック (メルボルン)	必須
-    ApSouth1,     // アジアパシフィック (ムンバイ)	不要
-    ApNortheast3, // アジアパシフィック (大阪)	不要
-    ApNortheast2, // アジアパシフィック (ソウル)	不要
-    ApSoutheast1, // アジアパシフィック (シンガポール)	不要
-    ApSoutheast2, // アジアパシフィック (シドニー)	不要
-    ApNortheast1, // アジアパシフィック (東京)	不要
-    CaCentral1,   // カナダ (中部)	不要
-    CaWest1,      // カナダ西部 (カルガリー)	必須
-    CnNorth1,     // 中国 (北京)	不要
-    CnNorthwest1, // 中国 (寧夏)	不要
-    EuCentral1,   // 欧州 (フランクフルト)	不要
-    EuWest1,      // 欧州 (アイルランド)	不要
-    EuWest2,      // 欧州 (ロンドン)	不要
-    EuSouth1,     // 欧州 (ミラノ)	必須
-    EuWest3,      // 欧州 (パリ)	不要
-    EuSouth2,     // 欧州 (スペイン)	必須
-    EuNorth1,     // 欧州 (ストックホルム)	不要
-    EuCentral2,   // 欧州 (チューリッヒ)	必須
-    IlCentral1,   // イスラエル (テルアビブ)	必須
-    MeSouth1,     // 中東 (バーレーン)	必須
-    MeCentral1,   // 中東 (アラブ首長国連邦)	必須
-    SaEast1,      // 南米 (サンパウロ)	不要
+    UsEast1,      // 米国東部 (バージニア北部)
+    UsEast2,      // 米国東部 (オハイオ)
+    UsWest1,      // 米国西部 (北カリフォルニア)
+    UsWest2,      // 米国西部 (オレゴン)
+    AfSouth1,     // アフリカ (ケープタウン)
+    ApEast1,      // アジアパシフィック (香港)
+    ApSouth2,     // アジアパシフィック (ハイデラバード)
+    ApSoutheast3, // アジアパシフィック (ジャカルタ)
+    ApSoutheast5, // アジアパシフィック (マレーシア)
+    ApSoutheast4, // アジアパシフィック (メルボルン)
+    ApSouth1,     // アジアパシフィック (ムンバイ)
+    ApNortheast3, // アジアパシフィック (大阪)
+    ApNortheast2, // アジアパシフィック (ソウル)
+    ApSoutheast1, // アジアパシフィック (シンガポール)
+    ApSoutheast2, // アジアパシフィック (シドニー)
+    ApNortheast1, // アジアパシフィック (東京)
+    CaCentral1,   // カナダ (中部)
+    CaWest1,      // カナダ西部 (カルガリー)
+    CnNorth1,     // 中国 (北京)
+    CnNorthwest1, // 中国 (寧夏)
+    EuCentral1,   // 欧州 (フランクフルト)
+    EuWest1,      // 欧州 (アイルランド)
+    EuWest2,      // 欧州 (ロンドン)
+    EuSouth1,     // 欧州 (ミラノ)
+    EuWest3,      // 欧州 (パリ)
+    EuSouth2,     // 欧州 (スペイン)
+    EuNorth1,     // 欧州 (ストックホルム)
+    EuCentral2,   // 欧州 (チューリッヒ)
+    IlCentral1,   // イスラエル (テルアビブ)
+    MeSouth1,     // 中東 (バーレーン)
+    MeCentral1,   // 中東 (アラブ首長国連邦)
+    SaEast1,      // 南米 (サンパウロ)
 }
 
 impl fmt::Display for AwsRegion {
