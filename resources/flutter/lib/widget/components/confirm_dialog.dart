@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../common/extension/i18n_loc.dart';
+import '../../common/extension/i18n.dart';
 
 class ConfirmDialog extends StatelessWidget {
   const ConfirmDialog({required this.action, super.key});
