@@ -1,5 +1,7 @@
 use askama::Template;
 
+use super::config::{DynamoDBTableConfig, DynamoDBTableKey};
+
 pub(crate) enum DynamoDbAccessPattern {
     GetItem,
     PutItem,
@@ -11,7 +13,7 @@ pub(crate) enum DynamoDbAccessPattern {
 }
 
 #[derive(Template)]
-#[template(path = "dynamodb/accessor.py", escape = "none")]
+#[template(path = "aws/dynamodb/accessor.py", escape = "none")]
 pub(super) struct DynamoDbAccessorTemplate<'a> {
     pub(super) dynamodb: &'a str,
 }

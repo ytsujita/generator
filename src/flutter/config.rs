@@ -8,30 +8,35 @@ use std::fmt;
 #[derive(Deserialize, Serialize)]
 pub(crate) struct Config {
     pub(crate) application_name: String,
-    pub(crate) route_path_config: NavigationConfig,
-    pub(crate) application_config: ApplicationConfig,
-    pub(crate) riverpod_config: RiverpodConfig,
-    pub(crate) domain_config: DomainConfig,
+    pub(crate) copy_source: Option<Vec<CopySource>>,
+    pub(crate) route_path_config: Option<NavigationConfig>,
+    pub(crate) application_config: Option<ApplicationConfig>,
+    pub(crate) riverpod_config: Option<RiverpodConfig>,
 }
 
 #[derive(Deserialize, Serialize)]
-pub(crate) struct DomainConfig {
-    pub(crate) entities: Option<Vec<DartClass>>,
-    pub(crate) repositories: Option<Vec<RepositoryConfig>>,
-    pub(crate) services: Option<Vec<ServiceConfig>>,
-    pub(crate) common_exceptions: Option<Vec<ExceptionConfig>>,
+pub(crate) enum CopySource {
+    GitHub(GitHubSource),
+    CodeCommit(CodeCommitSource),
+    Local(LocalSource),
 }
 
 #[derive(Deserialize, Serialize)]
-pub(crate) struct RepositoryConfig {
-    pub(crate) name: String,
-    pub(crate) exceptions: Option<Vec<ExceptionConfig>>,
+pub(crate) struct GitHubSource {
+    repository_name: String,
+    path: Vec<String>,
 }
 
 #[derive(Deserialize, Serialize)]
-pub(crate) struct ServiceConfig {
-    pub(crate) name: String,
-    pub(crate) exceptions: Option<Vec<ExceptionConfig>>,
+pub(crate) struct CodeCommitSource {
+    account_id: String,
+    repository_name: String,
+    path: Vec<String>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub(crate) struct LocalSource {
+    path: Vec<String>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -453,7 +458,7 @@ pub(crate) fn generate_sample_config(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let config = Config {
         application_name: application_name.to_string(),
-        application_config: ApplicationConfig {
+        application_config: Some(ApplicationConfig {
             use_cases: vec![
                 UseCaseConfig {
                     name: String::from("signIn"),
@@ -552,8 +557,8 @@ pub(crate) fn generate_sample_config(
                     use_case_type: UseCaseType::Command,
                 },
             ],
-        },
-        route_path_config: NavigationConfig {
+        }),
+        route_path_config: Some(NavigationConfig {
             route_paths: vec![
                 RouteConfigType::RoutePath(RoutePathConfig {
                     name: String::from("SignIn"),
@@ -671,8 +676,8 @@ pub(crate) fn generate_sample_config(
                 fields: None,
                 children: None,
             }),
-        },
-        riverpod_config: RiverpodConfig {
+        }),
+        riverpod_config: Some(RiverpodConfig {
             providers: Some(vec![
                 ProviderConfig {
                     name: String::from("SignInFormState"),
@@ -712,55 +717,22 @@ pub(crate) fn generate_sample_config(
                 },
             ]),
             use_riverpod_generator: false,
-        },
-        domain_config: DomainConfig {
-            entities: Some(vec![DartClass {
-                name: String::from("SampleClass"),
-                is_immutable: true,
-                fields: Some(vec![DartField {
-                    name: String::from("sampleField"),
-                    dart_type: DartType::Int,
-                    nullable: false,
-                    is_final: true,
-                }]),
-            }]),
-            repositories: Some(vec![RepositoryConfig {
-                name: String::from("sample"),
-                exceptions: Some(vec![ExceptionConfig {
-                    name: String::from("sampleException"),
-                    description: Some(String::from("これはサンプルの説明")),
-                    fields: Some(vec![DartField {
-                        name: String::from("field1"),
-                        dart_type: DartType::Int,
-                        nullable: false,
-                        is_final: true,
-                    }]),
-                }]),
-            }]),
-            services: Some(vec![ServiceConfig {
-                name: String::from("sample"),
-                exceptions: Some(vec![ExceptionConfig {
-                    name: String::from("sampleException"),
-                    description: Some(String::from("これはサンプルの説明")),
-                    fields: Some(vec![DartField {
-                        name: String::from("field1"),
-                        dart_type: DartType::Int,
-                        nullable: false,
-                        is_final: true,
-                    }]),
-                }]),
-            }]),
-            common_exceptions: Some(vec![ExceptionConfig {
-                name: String::from("sampleException"),
-                description: Some(String::from("これはサンプルの説明")),
-                fields: Some(vec![DartField {
-                    name: String::from("field1"),
-                    dart_type: DartType::Int,
-                    nullable: false,
-                    is_final: true,
-                }]),
-            }]),
-        },
+        }),
+        copy_source: Some(vec![
+            CopySource::CodeCommit(CodeCommitSource {
+                account_id: String::from("000000000000"),
+                repository_name: String::from("sample_repository"),
+                path: vec![String::from("lib/domain/")],
+            }),
+            CopySource::GitHub(GitHubSource {
+                repository_name: String::from("sample/sample"),
+                path: vec![
+                    String::from("lib/domain/service/sample"),
+                    String::from("lib/domain/repository/sample.dart"),
+                    String::from("test/domain/repository/sample.dart"),
+                ],
+            }),
+        ]),
     };
     let config_str = serde_yaml::to_string(&config).unwrap();
     create_file(

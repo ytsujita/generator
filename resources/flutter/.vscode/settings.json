@@ -62,6 +62,9 @@
 		"!ShellRoute",
 		"!ShellRoute sequence",
 		"!ShellRoute mapping",
-		"!Enum sequence"
+		"!Enum sequence",
+		"!GitHub mapping",
+		"!CodeCommit mapping",
+		"!Local mapping"
 	]
 }

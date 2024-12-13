@@ -11,6 +11,8 @@ use serde::{Deserialize, Serialize};
 use crate::flutter::config::generate_sample_config;
 use crate::utils::create_file;
 
+use super::super::APPLICATION_NAME;
+
 pub(crate) fn init_flutter_app(
     file_name: &str,
     generate_config_only: bool,
@@ -64,6 +66,7 @@ pub(crate) fn init_flutter_app(
     println!("> dart fix --apply");
     println!("> dart format .");
     println!("> flutter pub run import_sorter:main");
+    println!("> {} flutter gen", APPLICATION_NAME);
     Ok(())
 }
 

@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::utils::create_file;
 
+use super::super::error::EnvVarNotFoundError;
 use super::super::APPLICATION_NAME;
 use std::{env, path::Path};
 
@@ -18,9 +19,10 @@ pub(crate) enum GitType {
 }
 
 pub(crate) fn init_config_file(overwrite_conflict: bool) -> Result<(), Box<dyn std::error::Error>> {
-    let xdg_config_home = match env::var("XDG_CONFIG_HOME") {
-        Ok(value) => value,
-        Err(e) => return Err(Box::new(e)),
+    let Ok(xdg_config_home) = env::var("XDG_CONFIG_HOME") else {
+        return Err(Box::new(EnvVarNotFoundError {
+            env_name: String::from("XDG_CONFIG_HOME"),
+        }));
     };
     let path = Path::new(&xdg_config_home);
     let path_buf = path.join(APPLICATION_NAME);
