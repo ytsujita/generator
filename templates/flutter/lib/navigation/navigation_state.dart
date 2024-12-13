@@ -20,12 +20,16 @@ class NavigationState {
     NavigationState? previousState,
   }) {
     final _ = previousState ?? NavigationState.init();
+    // TODO: Handle all cases.
     switch (routePath) {
       {% for name in route_path_names %}
         case {{ name|pascal }}RoutePath():
-          // TODO: Handle this case.
       {%- endfor %}
     }
+    // default: return rootPathStack
+    return NavigationState(
+      rootRoutePathStack: [routePath],
+    );
   }
 
   factory NavigationState.init() {
