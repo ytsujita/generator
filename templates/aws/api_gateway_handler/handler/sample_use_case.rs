@@ -6,7 +6,7 @@ use lambda_runtime::LambdaEvent;
 use serde::{self, Deserialize, Serialize};
 
 use super::MyApiError;
-use crate::dynamodb::sample_query;
+use crate::dynamodb::sample_table_accessor::query;
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -41,12 +41,9 @@ pub(crate) async fn call(
     event: &LambdaEvent<ApiGatewayProxyRequest>,
 ) -> Result<ApiGatewayProxyResponse, MyApiError> {
     // construct request content from lambda event.
-    let request_object = match SampleRequestObject::from_event(event) {
-        Ok(val) => val,
-        Err(_err) => return Err(MyApiError::InvalidRequest),
-    };
+    let request_object = SampleRequestObject::from_event(event)?;
     // TODO: do something
-    let sample_response_body = sample_query(aws_config, &request_object).await?;
+    let sample_response_body = query(aws_config, &request_object).await?;
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", "application/json".parse().unwrap());
     Ok(ApiGatewayProxyResponse {

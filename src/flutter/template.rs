@@ -1,4 +1,4 @@
-use super::config::Config;
+use super::{config::Config, FlutterCommandError};
 
 use std::fs;
 
@@ -6,9 +6,16 @@ pub(crate) fn generate_files(
     config_file_name: &str,
     overwrite_all_conflict_files: bool,
     skip_all_conflict_files: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), FlutterCommandError> {
     let config_str = fs::read_to_string(config_file_name)?;
-    let config: Config = serde_yaml::from_str(config_str.as_str())?;
+    let config: Config = match serde_yaml::from_str(config_str.as_str()) {
+        Ok(v) => v,
+        Err(_) => {
+            return Err(FlutterCommandError::InvalidFileError {
+                file_name: config_file_name.to_owned(),
+            })
+        }
+    };
     if let Some(route_path_config) = &config.route_path_config {
         super::template_navigation::generate_navigation(
             &config.application_name,

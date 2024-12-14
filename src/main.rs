@@ -6,9 +6,10 @@ mod flutter;
 mod terraform;
 mod utils;
 
-use colored::Colorize;
 use std::env;
 use std::path::Path;
+
+static APPLICATION_NAME: &str = "easy_gen";
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None, flatten_help = true)]
@@ -75,8 +76,6 @@ enum TerraformMode {
     Gen,
 }
 
-static APPLICATION_NAME: &str = "easy_gen";
-
 fn main() {
     let args = Args::parse();
     let new_dir = Path::new(args.dir.as_str());
@@ -84,55 +83,11 @@ fn main() {
         eprintln!("Failed to change directory. {}", e);
         return;
     }
-    let result = match args.gen_type {
-        GenType::Flutter { mode } => {
-            let pubspec_path = Path::new("pubspec.yaml");
-            if !pubspec_path.exists() {
-                eprintln!("{}", "pubspec.yaml is not found.".red());
-                return;
-            }
-            let flutter_config_file_name = format!("{}_flutter_config.yaml", APPLICATION_NAME);
-            match mode {
-                FlutterMode::Init {
-                    overwrite_conflict_files,
-                    skip_conflict_config_files,
-                    config_only,
-                } => flutter::init::init_flutter_app(
-                    &flutter_config_file_name,
-                    config_only,
-                    overwrite_conflict_files,
-                    skip_conflict_config_files,
-                ),
-                FlutterMode::Gen {
-                    overwrite_conflict_files,
-                    skip_conflict_files,
-                } => flutter::template::generate_files(
-                    &flutter_config_file_name,
-                    overwrite_conflict_files,
-                    skip_conflict_files,
-                ),
-                FlutterMode::Format => flutter::format::format_import(),
-            }
-        }
-        GenType::Terraform { mode } => {
-            let _ = match mode {
-                TerraformMode::Init {
-                    overwrite_conflict_files,
-                    skip_conflict_config_files,
-                } => terraform::init::init_terraform_project(
-                    overwrite_conflict_files,
-                    skip_conflict_config_files,
-                ),
-                TerraformMode::Gen => Ok(()),
-            };
-            Ok(())
-        }
+    match args.gen_type {
+        GenType::Flutter { mode } => flutter::command_handler(mode),
+        GenType::Terraform { mode } => terraform::command_handler(mode),
         GenType::Config {
             overwrite_conflict_file,
-        } => config::init::init_config_file(overwrite_conflict_file),
+        } => config::command_handler(overwrite_conflict_file),
     };
-    match result {
-        Ok(_) => println!("{}", "done".green()),
-        Err(error) => eprintln!("{}", format!("{}", error).red()),
-    }
 }

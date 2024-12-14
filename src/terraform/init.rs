@@ -4,7 +4,6 @@ use std::str::FromStr;
 use std::{fs, path::Path};
 
 use askama::Template;
-use colored::Colorize;
 use include_dir::{include_dir, Dir};
 use strum::{EnumIter, IntoEnumIterator};
 
@@ -12,12 +11,14 @@ use crate::utils::create_file;
 
 use dialoguer::{Input, Select};
 
+use super::TerraformCommandError;
+
 static SRC_DIR: Dir = include_dir!("resources/terraform/");
 
 pub(crate) fn init_terraform_project(
     overwrite_conflict_files: bool,
     skip_conflict_files: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), TerraformCommandError> {
     copy_dir_recursive(
         Path::new("./"),
         overwrite_conflict_files,
@@ -25,17 +26,28 @@ pub(crate) fn init_terraform_project(
     )?;
     let mut project_name: String = String::from("");
     while project_name.is_empty() {
-        project_name = Input::new().with_prompt("Project Name").interact_text()?;
+        project_name = match Input::new().with_prompt("Project Name").interact_text() {
+            Ok(val) => val,
+            Err(err) => match err {
+                dialoguer::Error::IO(e) => return Err(TerraformCommandError::IOError(e)),
+            },
+        }
     }
     let mut regions: Vec<String> = vec![];
     for region in AwsRegion::iter() {
         regions.push(format!("{}", region));
     }
-    let choice: usize = Select::new()
+    let choice: usize = match Select::new()
         .with_prompt("Region Name")
         .items(&regions)
         .default(15)
-        .interact()?;
+        .interact()
+    {
+        Ok(val) => val,
+        Err(err) => match err {
+            dialoguer::Error::IO(e) => return Err(TerraformCommandError::IOError(e)),
+        },
+    };
     let region_name: &str = &regions[choice];
     let envs = ["dev", "test", "prod"];
     for env in envs {
@@ -47,9 +59,6 @@ pub(crate) fn init_terraform_project(
             skip_conflict_files,
         )?;
     }
-    println!("{}", "completed!".green());
-    println!("{}", "Please run below commands!".blue());
-    println!("> aws-vault exec {{profile name}} -- terraform init");
     Ok(())
 }
 
@@ -57,7 +66,7 @@ fn copy_dir_recursive(
     dst: &Path,
     overwrite_all: bool,
     ignore_conflict_config_file: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     if !dst.exists() {
         fs::create_dir(dst)?;
     }
@@ -70,7 +79,7 @@ fn copy_dir_recursive(
             }
             include_dir::DirEntry::File(f) => {
                 let file_path = f.path().as_os_str().to_str().unwrap();
-                let file_buf: PathBuf = PathBuf::from_str(file_path)?;
+                let file_buf: PathBuf = PathBuf::from_str(file_path).unwrap();
                 if let Some(parent) = file_buf.parent() {
                     if !parent.exists() {
                         fs::create_dir_all(parent)?;
@@ -94,7 +103,7 @@ fn generate_provider_template(
     region_name: &str,
     overwrite_all_conflict_files: bool,
     skip_all_conflict_files: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     let template = ProviderTemplate {
         project_name,
         env_name,

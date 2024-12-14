@@ -4,8 +4,9 @@ use std::io::Write;
 use std::path::Path;
 
 use super::init::PubspecYaml;
+use super::FlutterCommandError;
 
-pub(crate) fn format_import() -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn format_import() -> Result<(), FlutterCommandError> {
     let pubspec_yaml_file_str = fs::read_to_string("pubspec.yaml")?;
     let pubspec_yaml: PubspecYaml = serde_yaml::from_str(&pubspec_yaml_file_str).unwrap();
     let lib_dir = Path::new("lib");

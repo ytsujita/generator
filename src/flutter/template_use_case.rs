@@ -65,7 +65,7 @@ pub(super) fn generate_use_case(
     config: &ApplicationConfig,
     delete_all_conflict_file: bool,
     ignore_all_conflict_file: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     for use_case in &config.use_cases {
         let mut exceptions: Vec<UseCaseExceptionTemplate> = Vec::new();
         for exception in &use_case.exceptions {

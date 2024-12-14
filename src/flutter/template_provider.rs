@@ -32,7 +32,7 @@ pub(super) fn generate_providers(
     riverpod_config: &RiverpodConfig,
     overwrite_all_conflict_files: bool,
     skip_all_conflict_files: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     if let Some(vec) = &riverpod_config.providers {
         for provider_config in vec {
             let template = ProviderTemplate {

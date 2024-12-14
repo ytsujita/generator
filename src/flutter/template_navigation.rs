@@ -78,7 +78,7 @@ pub(super) fn generate_navigation(
     route_path_config: &NavigationConfig,
     overwrite_all_conflict_files: bool,
     skip_all_conflict_files: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     let mut route_paths: Vec<&RoutePathConfig> = vec![];
     let mut shell_paths: Vec<&ShellRoutePathConfig> = vec![];
     for path in route_path_config.route_paths.iter() {
@@ -143,7 +143,7 @@ fn generate_route_path(
     skip_conflict_file: bool,
     route_template: &[Route],
     shell_template: &[ShellRoute],
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     let route_path_template = RoutePathTemplate {
         application_name,
         route_paths: &route_template.iter().collect(),
@@ -168,7 +168,7 @@ fn generate_navigation_state(
     route_path_config: &NavigationConfig,
     overwrite_conflict_file: bool,
     skip_conflict_file: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     let mut route_paths: Vec<&RoutePathConfig> = vec![];
     let mut shell_paths: Vec<&ShellRoutePathConfig> = vec![];
     for path in route_path_config.route_paths.iter() {
@@ -203,7 +203,7 @@ fn generate_route_information_parser(
     route_path_config: &NavigationConfig,
     overwrite_conflict_file: bool,
     skip_conflict_file: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     let _ = route_path_config;
     let template = RouteInformationTemplate {};
     let file_name = "lib/navigation/main_route_information.dart";
@@ -220,7 +220,7 @@ fn generate_router_delegate(
     route_path_config: &NavigationConfig,
     overwrite_conflict_file: bool,
     skip_conflict_file: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     let _ = route_path_config;
     let template = RouterDelegateTemplate {};
     let file_name = "lib/navigation/main_router_delegate.dart";
@@ -237,7 +237,7 @@ fn generate_navigation_state_provider(
     route_path_config: &NavigationConfig,
     overwrite_conflict_file: bool,
     skip_conflict_file: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     let _ = route_path_config;
     let template = NavigationStateProviderTemplate {};
     let file_name = "lib/navigation/navigation_state_provider.dart";

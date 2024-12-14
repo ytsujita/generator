@@ -11,7 +11,7 @@ pub(crate) fn generate_i18n(
     route_path_config: &NavigationConfig,
     _overwrite_all_conflict_files: bool,
     _skip_all_conflict_files: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     let mut route_paths: Vec<&RoutePathConfig> = vec![];
     let mut shell_paths: Vec<&ShellRoutePathConfig> = vec![];
     for path in route_path_config.route_paths.iter() {

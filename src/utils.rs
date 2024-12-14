@@ -14,7 +14,7 @@ pub(crate) fn create_file(
     bytes: &[u8],
     overwrite_conflict: bool,
     skip_conflict: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     let path_buf = PathBuf::from(file_path_name);
     let parent = path_buf.parent().unwrap();
     if !parent.exists() {
@@ -77,7 +77,7 @@ pub(crate) fn input_yes(message: &str) -> bool {
     *"yes" == res || res == String::from('y')
 }
 
-pub(crate) fn create_dir(path: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn create_dir(path: &str) -> Result<(), std::io::Error> {
     let path_buf = PathBuf::from(path);
     if path_buf.exists() {
         return Ok(());

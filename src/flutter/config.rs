@@ -455,7 +455,7 @@ pub(crate) fn generate_sample_config(
     file_name: &str,
     overwrite_conflict: bool,
     skip_conflict: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     let config = Config {
         application_name: application_name.to_string(),
         application_config: Some(ApplicationConfig {

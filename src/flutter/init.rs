@@ -12,13 +12,14 @@ use crate::flutter::config::generate_sample_config;
 use crate::utils::create_file;
 
 use super::super::APPLICATION_NAME;
+use super::FlutterCommandError;
 
 pub(crate) fn init_flutter_app(
     file_name: &str,
     generate_config_only: bool,
     overwrite_conflict_files: bool,
     skip_conflict_files: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), FlutterCommandError> {
     let pubspec_yaml_file_str = fs::read_to_string("pubspec.yaml")?;
     let mut pubspec_yaml: PubspecYaml = serde_yaml::from_str(&pubspec_yaml_file_str).unwrap();
     generate_sample_config(
@@ -36,7 +37,6 @@ pub(crate) fn init_flutter_app(
         overwrite_conflict_files,
         skip_conflict_files,
     )?;
-    println!("{}", "completed!".green());
     println!("{}", "Please run below commands!".blue());
     let args = vec![
         "flutter_hooks",
@@ -76,7 +76,7 @@ fn copy_dir_recursive(
     dst: &Path,
     overwrite_all: bool,
     ignore_conflict_config_file: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
     if !dst.exists() {
         fs::create_dir(dst)?;
     }
@@ -89,7 +89,7 @@ fn copy_dir_recursive(
             }
             include_dir::DirEntry::File(f) => {
                 let file_path = f.path().as_os_str().to_str().unwrap();
-                let file_buf: PathBuf = PathBuf::from_str(file_path)?;
+                let file_buf: PathBuf = PathBuf::from_str(file_path).unwrap();
                 if let Some(parent) = file_buf.parent() {
                     if !parent.exists() {
                         fs::create_dir_all(parent)?;
@@ -107,7 +107,7 @@ fn copy_dir_recursive(
     Ok(())
 }
 
-fn edit_pubspec_yaml(pubspec_yaml: &mut PubspecYaml) -> Result<(), Box<dyn std::error::Error>> {
+fn edit_pubspec_yaml(pubspec_yaml: &mut PubspecYaml) -> Result<(), std::io::Error> {
     pubspec_yaml.flutter.insert("generate", Value::Bool(true));
     pubspec_yaml.import_sorter = Some(ImportSorter {
         relative: true,

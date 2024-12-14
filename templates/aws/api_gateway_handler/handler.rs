@@ -42,7 +42,7 @@ impl From<MyApiError> for ApiGatewayProxyResponse {
             MyApiError::InvalidRequest => {
                 let error_response_body = ErrorResponseBody {
                     error_code: 1_000,
-                    error_message: "sample".to_string(),
+                    error_message: "Invalid Request".to_string(),
                 };
                 let mut headers = HeaderMap::new();
                 headers.insert("Content-Type", "application/json".parse().unwrap());
