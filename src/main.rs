@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
 mod aws;
 mod config;
-mod error;
 mod flutter;
 mod terraform;
 mod utils;
@@ -72,6 +71,9 @@ enum TerraformMode {
         /// Skip all conflict files.
         #[arg(short)]
         skip_conflict_config_files: bool,
+        /// with generate sam
+        #[arg()]
+        sam_generate: bool,
     },
     Gen,
 }

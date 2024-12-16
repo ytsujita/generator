@@ -1,3 +1,5 @@
+カスタムデシリアライズの例
+
 use serde::{Deserialize, Deserializer};
 use serde::de::{self, MapAccess, Visitor};
 use std::fmt;

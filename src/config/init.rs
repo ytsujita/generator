@@ -32,7 +32,6 @@ pub(crate) fn init_config_file(overwrite_conflict: bool) -> Result<(), ConfigCom
         git_type: GitType::Ssh,
     };
     let config_str = serde_yaml::to_string(&config).unwrap();
-
     create_file(
         path_buf.to_str().unwrap(),
         config_str.as_bytes(),

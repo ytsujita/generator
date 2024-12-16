@@ -35,7 +35,10 @@
     - dynamodb table に格納している項目の構造について、structで定義(パースも)
     - {foobar}#{fizz}みたいな構造からfoobarだけを取り出すようなメソッドも用意したい
     - dynamodb へのアクセスパターンについて、sampleを書いておくと良いかも
-    - use case単位でエラーを定義して、ハンドリングはそれぞれのuse caseで行わせる
-    - handler.rs はあくまでリクエストをそれぞれのuse caseに振り分けるだけ
-    - response も use case が定義するように修正
 
+## Test
+
+examples
+
+- `cargo run -q -- -d ./gen_sample/terraform terraform init`
+- `cargo run -q -- -d ./gen_sample/flutter flutter init`

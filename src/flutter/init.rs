@@ -9,7 +9,7 @@ use include_dir::{include_dir, Dir};
 use serde::{Deserialize, Serialize};
 
 use crate::flutter::config::generate_sample_config;
-use crate::utils::create_file;
+use crate::utils::{self, create_file};
 
 use super::super::APPLICATION_NAME;
 use super::FlutterCommandError;
@@ -37,7 +37,6 @@ pub(crate) fn init_flutter_app(
         overwrite_conflict_files,
         skip_conflict_files,
     )?;
-    println!("{}", "Please run below commands!".blue());
     let args = vec![
         "flutter_hooks",
         "hooks_riverpod",
@@ -60,12 +59,17 @@ pub(crate) fn init_flutter_app(
         "dev:rename_app",
         "dev:source_gen",
     ];
-    println!("> flutter pub add {}", args.join(" "));
-    println!("> flutter pub get");
-    println!("> dart run slang");
-    println!("> dart fix --apply");
-    println!("> dart format .");
-    println!("> flutter pub run import_sorter:main");
+    utils::execute_external_command(format!("flutter pub add {}", args.join(" ")))?;
+    utils::execute_external_command("flutter pub run pubspec_dependency_sorter".to_string())?;
+    utils::execute_external_command("flutter pub get".to_string())?;
+    utils::execute_external_command("dart run slang".to_string())?;
+    utils::execute_external_command("dart fix --apply".to_string())?;
+    utils::execute_external_command("dart format .".to_string())?;
+    utils::execute_external_command("flutter pub run import_sorter:main".to_string())?;
+    println!(
+        "{}",
+        "Next, edit the config file and then generate using the following command.".blue()
+    );
     println!("> {} flutter gen", APPLICATION_NAME);
     Ok(())
 }

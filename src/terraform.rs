@@ -22,6 +22,7 @@ pub(crate) fn command_handler(mode: TerraformMode) {
         TerraformMode::Init {
             overwrite_conflict_files,
             skip_conflict_config_files,
+            sam_generate,
         } => init_terraform_project(overwrite_conflict_files, skip_conflict_config_files),
         TerraformMode::Gen => Ok(()),
     };
