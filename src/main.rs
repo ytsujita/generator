@@ -71,11 +71,7 @@ enum TerraformMode {
         /// Skip all conflict files.
         #[arg(short)]
         skip_conflict_config_files: bool,
-        /// with generate sam
-        #[arg()]
-        sam_generate: bool,
     },
-    Gen,
 }
 
 fn main() {

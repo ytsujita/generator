@@ -5,6 +5,7 @@ use std::str::FromStr;
 use std::{fs, path::Path};
 
 use askama::Template;
+use colored::Colorize;
 use include_dir::{include_dir, Dir};
 use strum::IntoEnumIterator;
 
@@ -16,6 +17,14 @@ use dialoguer::{Input, Select};
 use super::TerraformCommandError;
 
 static SRC_DIR: Dir = include_dir!("resources/terraform/");
+
+#[derive(Template)]
+#[template(path = "terraform/envs/provider.tf", escape = "none")]
+struct ProviderTemplate<'a> {
+    pub(super) project_name: &'a str,
+    pub(super) env_name: &'a str,
+    pub(super) region_name: &'a str,
+}
 
 pub(crate) fn init_terraform_project(
     overwrite_conflict_files: bool,
@@ -37,6 +46,7 @@ pub(crate) fn init_terraform_project(
             skip_conflict_files,
         )?;
     }
+    println!("{}", "Next, You can invoke `terraform init`".blue());
     Ok(())
 }
 
@@ -130,12 +140,4 @@ fn input_region_name() -> Result<String, TerraformCommandError> {
     };
     let region_name: &str = &regions[choice];
     Ok(region_name.to_owned())
-}
-
-#[derive(Template)]
-#[template(path = "terraform/envs/provider.tf", escape = "none")]
-pub(super) struct ProviderTemplate<'a> {
-    pub(super) project_name: &'a str,
-    pub(super) env_name: &'a str,
-    pub(super) region_name: &'a str,
 }
