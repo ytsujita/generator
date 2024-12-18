@@ -11,7 +11,7 @@ pub(crate) fn generate_files(
     let config: Config = match serde_yaml::from_str(config_str.as_str()) {
         Ok(v) => v,
         Err(_) => {
-            return Err(FlutterCommandError::InvalidFileError {
+            return Err(FlutterCommandError::InvalidFile {
                 file_name: config_file_name.to_owned(),
             })
         }
@@ -28,13 +28,6 @@ pub(crate) fn generate_files(
         super::template_use_case::generate_use_case(
             &config.application_name,
             application_config,
-            overwrite_all_conflict_files,
-            skip_all_conflict_files,
-        )?;
-    }
-    if let Some(riverpod_config) = &config.riverpod_config {
-        super::template_provider::generate_providers(
-            riverpod_config,
             overwrite_all_conflict_files,
             skip_all_conflict_files,
         )?;

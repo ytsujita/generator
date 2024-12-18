@@ -11,7 +11,6 @@ pub(crate) struct Config {
     pub(crate) copy_source: Option<Vec<CopySource>>,
     pub(crate) route_path_config: Option<NavigationConfig>,
     pub(crate) application_config: Option<ApplicationConfig>,
-    pub(crate) riverpod_config: Option<RiverpodConfig>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -43,7 +42,6 @@ pub(crate) struct LocalSource {
 pub(crate) struct ExceptionConfig {
     pub(crate) name: String,
     pub(crate) description: Option<String>,
-    pub(crate) fields: Option<Vec<DartField>>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -61,9 +59,7 @@ pub(crate) enum UseCaseType {
 pub(crate) struct UseCaseConfig {
     pub(crate) name: String,
     pub(crate) use_case_type: UseCaseType,
-    pub(crate) return_type: DartType,
     pub(crate) dir_name: Option<String>,
-    pub(crate) args: Option<Vec<DartField>>,
     pub(crate) exceptions: Vec<ExceptionConfig>,
 }
 
@@ -102,12 +98,6 @@ pub(crate) struct RoutePathConfig {
     pub(crate) path_reg_exp: Option<String>,
     pub(crate) fields: Option<Vec<DartField>>,
     pub(crate) children: Option<Vec<RouteConfigType>>,
-}
-
-#[derive(Deserialize, Serialize)]
-pub(crate) struct RiverpodConfig {
-    pub(crate) use_riverpod_generator: bool,
-    pub(crate) providers: Option<Vec<ProviderConfig>>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -463,44 +453,14 @@ pub(crate) fn generate_sample_config(
                 UseCaseConfig {
                     name: String::from("signIn"),
                     dir_name: Some(String::from("auth")),
-                    return_type: DartType::Future(Box::new(DartType::RefClass(DartClassRef {
-                        name: String::from("SignInUser"),
-                        path: String::from("lib/domain/entity/auth"),
-                    }))),
-                    args: Some(vec![
-                        DartField {
-                            name: String::from("email"),
-                            dart_type: DartType::String,
-                            nullable: false,
-                            is_final: true,
-                        },
-                        DartField {
-                            name: String::from("password"),
-                            dart_type: DartType::String,
-                            nullable: false,
-                            is_final: true,
-                        },
-                    ]),
                     exceptions: vec![
                         ExceptionConfig {
                             name: String::from("InternalServerError"),
                             description: None,
-                            fields: Some(vec![DartField {
-                                name: String::from("message"),
-                                dart_type: DartType::String,
-                                nullable: true,
-                                is_final: true,
-                            }]),
                         },
                         ExceptionConfig {
                             name: String::from("NetworkNotAvailable"),
                             description: None,
-                            fields: Some(vec![DartField {
-                                name: String::from("message"),
-                                dart_type: DartType::String,
-                                nullable: true,
-                                is_final: true,
-                            }]),
                         },
                     ],
                     use_case_type: UseCaseType::Query,
@@ -508,28 +468,14 @@ pub(crate) fn generate_sample_config(
                 UseCaseConfig {
                     name: String::from("SignOut"),
                     dir_name: Some(String::from("auth")),
-                    return_type: DartType::Void,
-                    args: None,
                     exceptions: vec![
                         ExceptionConfig {
                             name: String::from("InternalServerError"),
                             description: None,
-                            fields: Some(vec![DartField {
-                                name: String::from("message"),
-                                dart_type: DartType::String,
-                                nullable: true,
-                                is_final: true,
-                            }]),
                         },
                         ExceptionConfig {
                             name: String::from("NetworkNotAvailable"),
                             description: None,
-                            fields: Some(vec![DartField {
-                                name: String::from("message"),
-                                dart_type: DartType::String,
-                                nullable: true,
-                                is_final: true,
-                            }]),
                         },
                     ],
                     use_case_type: UseCaseType::Command,
@@ -537,22 +483,9 @@ pub(crate) fn generate_sample_config(
                 UseCaseConfig {
                     name: String::from("ForgotPassword"),
                     dir_name: Some(String::from("auth")),
-                    return_type: DartType::Void,
-                    args: Some(vec![DartField {
-                        name: String::from("email"),
-                        dart_type: DartType::String,
-                        nullable: false,
-                        is_final: true,
-                    }]),
                     exceptions: vec![ExceptionConfig {
                         name: String::from("NetworkNotAvailable"),
                         description: None,
-                        fields: Some(vec![DartField {
-                            name: String::from("message"),
-                            dart_type: DartType::String,
-                            nullable: true,
-                            is_final: true,
-                        }]),
                     }],
                     use_case_type: UseCaseType::Command,
                 },
@@ -676,47 +609,6 @@ pub(crate) fn generate_sample_config(
                 fields: None,
                 children: None,
             }),
-        }),
-        riverpod_config: Some(RiverpodConfig {
-            providers: Some(vec![
-                ProviderConfig {
-                    name: String::from("SignInFormState"),
-                    dir_name: Some(String::from("auth")),
-                    state: DartType::NewClass(DartClass {
-                        name: String::from("SignInForm"),
-                        is_immutable: true,
-                        fields: Some(vec![
-                            DartField {
-                                name: String::from("email"),
-                                dart_type: DartType::String,
-                                nullable: false,
-                                is_final: true,
-                            },
-                            DartField {
-                                name: String::from("password"),
-                                dart_type: DartType::String,
-                                nullable: false,
-                                is_final: true,
-                            },
-                        ]),
-                    }),
-                    auto_dispose: true,
-                    family_type: None,
-                    provider_type: ProviderType::NotifierProvider,
-                },
-                ProviderConfig {
-                    name: String::from("xxx"),
-                    dir_name: Some(String::from("main")),
-                    state: DartType::RefClass(DartClassRef {
-                        name: String::from("sample"),
-                        path: String::from("lib/domain/entity"),
-                    }),
-                    auto_dispose: true,
-                    family_type: None,
-                    provider_type: ProviderType::Provider,
-                },
-            ]),
-            use_riverpod_generator: false,
         }),
         copy_source: Some(vec![
             CopySource::CodeCommit(CodeCommitSource {

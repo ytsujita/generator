@@ -4,11 +4,7 @@ import 'package:{{ application_name }}/application/use_case/{{ file_name }}';
 
 class {{ name|pascal }}UseCaseImpl extends {{ name|pascal }}UseCase {
   @override
-{%- if is_future_call %}
-  Future<Result<{{ return_type }}, {{ name|pascal }}UseCaseException>> call() {
-{%- else %}
-  Result<{{ return_type }}, {{ name|pascal }}UseCaseException> call() {
-{%- endif %}
+  Result<void, {{ name|pascal }}UseCaseException> call() {
     try {
       throw UnimplementedError();
     } on Exception {

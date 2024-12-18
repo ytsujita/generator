@@ -80,13 +80,11 @@ impl fmt::Display for AwsRegion {
 
 impl AwsRegion {
     pub(crate) fn get_index(region: &AwsRegion) -> Option<usize> {
-        let mut index: usize = 0;
-        for reg in AwsRegion::iter() {
+        for (index, reg) in AwsRegion::iter().enumerate() {
             if &reg == region {
                 return Some(index);
             }
-            index += 1;
         }
-        return None;
+        None
     }
 }

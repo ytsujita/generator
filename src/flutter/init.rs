@@ -1,7 +1,5 @@
 use std::fs::File;
 use std::io::Write;
-use std::path::PathBuf;
-use std::str::FromStr;
 use std::{fs, path::Path};
 
 use colored::Colorize;
@@ -9,10 +7,11 @@ use include_dir::{include_dir, Dir};
 use serde::{Deserialize, Serialize};
 
 use crate::flutter::config::generate_sample_config;
-use crate::utils::{self, create_file};
+use crate::utils::{self, copy_dir_recursive};
 
-use super::super::APPLICATION_NAME;
 use super::FlutterCommandError;
+
+static SRC_DIR: Dir = include_dir!("resources/flutter/");
 
 pub(crate) fn init_flutter_app(
     file_name: &str,
@@ -33,6 +32,7 @@ pub(crate) fn init_flutter_app(
     }
     edit_pubspec_yaml(&mut pubspec_yaml)?;
     copy_dir_recursive(
+        &SRC_DIR,
         Path::new("./"),
         overwrite_conflict_files,
         skip_conflict_files,
@@ -44,8 +44,6 @@ pub(crate) fn init_flutter_app(
         "json_annotation",
         "logging",
         "mockito",
-        "shelf",
-        "shelf_cors_headers",
         "slang",
         "slang_flutter",
         "url_strategy",
@@ -57,56 +55,29 @@ pub(crate) fn init_flutter_app(
         "dev:json_serializable",
         "dev:pubspec_dependency_sorter",
         "dev:rename_app",
+        "dev:shelf",
+        "dev:shelf_cors_headers",
         "dev:source_gen",
     ];
-    utils::execute_external_command(format!("flutter pub add {}", args.join(" ")))?;
-    utils::execute_external_command("flutter pub run pubspec_dependency_sorter".to_string())?;
-    utils::execute_external_command("flutter pub get".to_string())?;
-    utils::execute_external_command("dart run slang".to_string())?;
-    utils::execute_external_command("dart fix --apply".to_string())?;
-    utils::execute_external_command("dart format .".to_string())?;
-    utils::execute_external_command("flutter pub run import_sorter:main".to_string())?;
-    println!(
-        "{}",
-        "Next, edit the config file and then generate using the following command.".blue()
-    );
-    println!("> {} flutter gen", APPLICATION_NAME);
-    Ok(())
-}
-
-static SRC_DIR: Dir = include_dir!("resources/flutter/");
-
-fn copy_dir_recursive(
-    dst: &Path,
-    overwrite_all: bool,
-    ignore_conflict_config_file: bool,
-) -> Result<(), std::io::Error> {
-    if !dst.exists() {
-        fs::create_dir(dst)?;
-    }
-    let glob = "**/*";
-    for file in SRC_DIR.find(glob).unwrap() {
-        let dst_path = dst.join(file.path());
-        match file {
-            include_dir::DirEntry::Dir(d) => {
-                fs::create_dir_all(d.path().as_os_str().to_str().unwrap()).unwrap();
-            }
-            include_dir::DirEntry::File(f) => {
-                let file_path = f.path().as_os_str().to_str().unwrap();
-                let file_buf: PathBuf = PathBuf::from_str(file_path).unwrap();
-                if let Some(parent) = file_buf.parent() {
-                    if !parent.exists() {
-                        fs::create_dir_all(parent)?;
-                    }
-                }
-                let _ = create_file(
-                    dst_path.as_os_str().to_str().unwrap(),
-                    f.contents(),
-                    overwrite_all,
-                    ignore_conflict_config_file,
-                );
-            }
-        }
+    let command_list = [
+        format!("flutter pub add {}", args.join(" ")),
+        "flutter pub get".to_string(),
+        "flutter pub run pubspec_dependency_sorter".to_string(),
+        "dart run slang".to_string(),
+        "dart fix --apply".to_string(),
+        "dart format .".to_string(),
+        "flutter pub run import_sorter:main".to_string(),
+    ];
+    for command_name in command_list.iter() {
+        if let Err(err) = utils::execute_external_command(command_name.clone()) {
+            eprintln!(
+                "{}",
+                format!("{} is failed!: {:?}", command_name, err).red()
+            );
+            return Err(FlutterCommandError::ExecuteExternalCommand {
+                command_name: command_name.clone(),
+            });
+        };
     }
     Ok(())
 }

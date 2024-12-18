@@ -27,8 +27,6 @@ struct UseCaseExceptionTemplate {
 struct UseCaseTemplate<'a> {
     application_name: &'a str,
     name: &'a str,
-    return_type: &'a str,
-    is_future_call: bool,
     exceptions: &'a Vec<&'a UseCaseExceptionTemplate>,
     use_case_type: &'a UseCaseType,
     file_name: &'a str,
@@ -42,8 +40,6 @@ struct UseCaseTemplate<'a> {
 struct CommandUseCaseImplTemplate<'a> {
     application_name: &'a str,
     name: &'a str,
-    return_type: &'a str,
-    is_future_call: bool,
     file_name: &'a str,
 }
 
@@ -55,8 +51,6 @@ struct CommandUseCaseImplTemplate<'a> {
 struct QueryUseCaseImplTemplate<'a> {
     application_name: &'a str,
     name: &'a str,
-    return_type: &'a str,
-    is_future_call: bool,
     file_name: &'a str,
 }
 
@@ -87,11 +81,6 @@ pub(super) fn generate_use_case(
         let use_case_template = UseCaseTemplate {
             application_name,
             name: &use_case.name,
-            return_type: match &use_case.return_type {
-                super::config::DartType::Future(v) => &format!("{}", *v),
-                _ => &format!("{}", &use_case.return_type),
-            },
-            is_future_call: matches!(&use_case.return_type, super::config::DartType::Future(_)),
             exceptions: &exceptions.iter().collect(),
             use_case_type: &use_case.use_case_type,
             file_name: &file_name_without_common,
@@ -115,18 +104,9 @@ pub(super) fn generate_use_case(
                 let command_use_case_impl_template = CommandUseCaseImplTemplate {
                     application_name,
                     name: &use_case.name,
-                    return_type: match &use_case.return_type {
-                        super::config::DartType::Future(v) => &format!("{}", *v),
-                        _ => &format!("{}", &use_case.return_type),
-                    },
-                    is_future_call: matches!(
-                        &use_case.return_type,
-                        super::config::DartType::Future(_)
-                    ),
                     file_name: &file_name_without_common,
                 };
                 let render_result = command_use_case_impl_template.render().unwrap();
-                println!("{}", file_name);
                 create_file(
                     file_name,
                     render_result.as_bytes(),
@@ -145,14 +125,6 @@ pub(super) fn generate_use_case(
                 let query_use_case_impl_template = QueryUseCaseImplTemplate {
                     application_name,
                     name: &use_case.name,
-                    return_type: match &use_case.return_type {
-                        super::config::DartType::Future(v) => &format!("{}", *v),
-                        _ => &format!("{}", &use_case.return_type),
-                    },
-                    is_future_call: matches!(
-                        &use_case.return_type,
-                        super::config::DartType::Future(_)
-                    ),
                     file_name: &file_name_without_common,
                 };
                 let render_result = query_use_case_impl_template.render().unwrap();

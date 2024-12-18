@@ -5,7 +5,6 @@ use std::str::FromStr;
 use std::{fs, path::Path};
 
 use askama::Template;
-use colored::Colorize;
 use include_dir::{include_dir, Dir};
 use strum::IntoEnumIterator;
 
@@ -16,14 +15,22 @@ use dialoguer::{Input, Select};
 
 use super::TerraformCommandError;
 
+mod filters {
+    use change_case::param_case;
+
+    pub fn kebab<T: std::fmt::Display>(s: T) -> ::askama::Result<String> {
+        Ok(param_case(&(s.to_string())))
+    }
+}
+
 static SRC_DIR: Dir = include_dir!("resources/terraform/");
 
 #[derive(Template)]
 #[template(path = "terraform/envs/provider.tf", escape = "none")]
 struct ProviderTemplate<'a> {
-    pub(super) project_name: &'a str,
-    pub(super) env_name: &'a str,
-    pub(super) region_name: &'a str,
+    pub(self) project_name: &'a str,
+    pub(self) env_name: &'a str,
+    pub(self) region_name: &'a str,
 }
 
 pub(crate) fn init_terraform_project(
@@ -46,7 +53,6 @@ pub(crate) fn init_terraform_project(
             skip_conflict_files,
         )?;
     }
-    println!("{}", "Next, You can invoke `terraform init`".blue());
     Ok(())
 }
 

@@ -8,9 +8,9 @@ terraform {
   }
   backend "s3" {
     region         = "{{ region_name }}"
-    bucket         = "{{ project_name }}-terraform-state"
-    dynamodb_table = "{{ project_name }}-terraform-state-lock"
-    key            = "terraform-{{ env_name }}.tfstate"
+    bucket         = "{{ project_name|kebab }}-terraform-state"
+    dynamodb_table = "{{ project_name|kebab }}-terraform-state-lock"
+    key            = "terraform-{{ env_name|kebab }}.tfstate"
     encrypt        = true
   }
 }
@@ -21,7 +21,7 @@ variable "region" {
 }
 
 locals {
-  project_name    = "{{ project_name }}"
+  project_name    = "{{ project_name|kebab }}"
   env_name        = "{{ env_name }}"
   resource_prefix = "${local.project_name}-${local.env_name}"
 }

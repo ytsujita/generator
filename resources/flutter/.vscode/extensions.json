@@ -1,0 +1,16 @@
+{
+	"recommendations": [
+		"dart-code.dart-code",
+		"editorconfig.editorconfig",
+		"tamasfe.even-better-toml",
+		"dart-code.flutter",
+		"localizely.flutter-intl",
+		"codezombiech.gitignore",
+		"pkief.material-icon-theme",
+		"christian-kohler.path-intellisense",
+		"tekumara.typos-vscode",
+		"redhat.vscode-yaml",
+		"streetsidesoftware.code-spell-checker"
+	],
+	"unwantedRecommendations": []
+}

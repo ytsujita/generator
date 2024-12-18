@@ -8,8 +8,6 @@ pub(crate) enum ConfigCommandError {
     IOError(#[from] std::io::Error),
     #[error("You must set env var: {variable_name:?}")]
     EnvVarNotFoundError { variable_name: String },
-    #[error("Unknown Error")]
-    UnknownError,
 }
 
 pub(crate) fn command_handler(overwrite_conflict_file: bool) {

@@ -10,26 +10,24 @@ pub mod init;
 pub mod template;
 pub mod template_i18n;
 pub mod template_navigation;
-pub mod template_provider;
 pub mod template_use_case;
 pub mod template_widget;
 
 #[derive(thiserror::Error, Debug)]
 pub(crate) enum FlutterCommandError {
     #[error("OS Error")]
-    IOError(#[from] std::io::Error),
-    #[error("You must set env var: {variable_name:?}")]
-    EnvVarNotFoundError { variable_name: String },
+    IO(#[from] std::io::Error),
     #[error("Invalid file: {file_name:?}")]
-    InvalidFileError { file_name: String },
-    #[error("Unknown Error")]
-    UnknownError,
+    InvalidFile { file_name: String },
+    #[error("Execute external command error: {command_name:?}")]
+    ExecuteExternalCommand { command_name: String },
 }
 
 pub(crate) fn command_handler(mode: FlutterMode) {
     let pubspec_yaml_path = Path::new("pubspec.yaml");
     if !pubspec_yaml_path.exists() {
         eprintln!("{}", "pubspec.yaml is not found.".red());
+        return;
     }
     let flutter_config_file_name = format!("{}_flutter_config.yaml", APPLICATION_NAME);
     let res = match mode {
@@ -58,20 +56,17 @@ pub(crate) fn command_handler(mode: FlutterMode) {
             println!("{}", "completed!".green());
         }
         Err(err) => match err {
-            FlutterCommandError::IOError(e) => {
+            FlutterCommandError::IO(e) => {
                 eprintln!("{}", format!("IO Error: {:?}", e).red());
             }
-            FlutterCommandError::UnknownError => {
-                eprintln!("{}", "Unknown Error".red());
+            FlutterCommandError::InvalidFile { file_name } => {
+                eprintln!("{}", format!("Invalid file: {}", file_name).red());
             }
-            FlutterCommandError::EnvVarNotFoundError { variable_name } => {
+            FlutterCommandError::ExecuteExternalCommand { command_name } => {
                 eprintln!(
                     "{}",
-                    format!("You must set env var: {}", variable_name).red()
+                    format!("Execute external command error: {}", command_name).red()
                 );
-            }
-            FlutterCommandError::InvalidFileError { file_name } => {
-                eprintln!("{}", format!("Invalid file: {}", file_name).red());
             }
         },
     };

@@ -21,23 +21,23 @@ mod filters {
 #[derive(Template)]
 #[template(path = "flutter/lib/widget/page/widget.dart", escape = "none")]
 pub(super) struct RouteWidgetTemplate<'a> {
-    pub(super) widget_name: &'a str,
+    pub(self) widget_name: &'a str,
 }
 
 #[derive(Template)]
 #[template(path = "flutter/lib/widget/page/shell_widget.dart", escape = "none")]
 pub(super) struct ShellRouteWidgetTemplate<'a> {
-    pub(super) application_name: &'a str,
-    pub(super) shell_name: &'a str,
-    pub(super) index_type: &'a ShellIndexType,
+    pub(self) application_name: &'a str,
+    pub(self) shell_name: &'a str,
+    pub(self) index_type: &'a ShellIndexType,
 }
 
 #[derive(Template)]
 #[template(path = "flutter/test/widget/widget_test.dart", escape = "none")]
 pub(super) struct WidgetTestTemplate<'a> {
-    pub(super) file_name: &'a str,
-    pub(super) application_name: &'a str,
-    pub(super) widget_name: &'a str,
+    pub(self) file_name: &'a str,
+    pub(self) application_name: &'a str,
+    pub(self) widget_name: &'a str,
 }
 
 pub(super) fn generate_widget(

@@ -1,6 +1,10 @@
+use include_dir::Dir;
+use std::any::Any;
 use std::fs::{self, File};
 use std::io::{self, Write};
+use std::path::Path;
 use std::path::PathBuf;
+use std::str::FromStr;
 use std::sync::Arc;
 
 use colored::Colorize;
@@ -90,17 +94,18 @@ pub(crate) fn create_dir(path: &str) -> Result<(), std::io::Error> {
     Ok(())
 }
 
-pub(crate) fn execute_external_command(command: String) -> Result<(), std::io::Error> {
+pub(crate) fn execute_external_command(command: String) -> Result<(), Box<dyn Any + Send>> {
     let command_arc = Arc::new(command.clone());
     let command_clone = Arc::clone(&command_arc);
     let spinner = ProgressBar::new_spinner();
+    let command_name = command.clone();
     spinner.set_style(
         ProgressStyle::default_spinner()
             .tick_strings(&["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"])
             .template("{spinner:.green} {msg}")
             .unwrap(),
     );
-    spinner.set_message(format!("Running {}", &command));
+    spinner.set_message(format!("Running {}", command_name));
     let handle = std::thread::spawn(move || {
         let is_windows = std::env::consts::OS == "windows";
         let (shell, arg) = if is_windows {
@@ -118,8 +123,49 @@ pub(crate) fn execute_external_command(command: String) -> Result<(), std::io::E
         spinner.tick();
         std::thread::sleep(std::time::Duration::from_millis(100));
     }
-    handle.join().expect("Thread panicked!");
-    let done_message = format!("{}", format!("{} is done!", command_arc).green());
-    spinner.finish_with_message(done_message);
+    spinner.finish_and_clear();
+    let done_message = match handle.join() {
+        Ok(_) => format!("{}", format!("{} is done!", command_name).green()),
+        Err(err) => {
+            return Err(err);
+        }
+    };
+    println!("{}", done_message);
+    Ok(())
+}
+
+pub(crate) fn copy_dir_recursive(
+    src: &Dir,
+    dst: &Path,
+    overwrite_all_conflict_files: bool,
+    ignore_all_conflict_files: bool,
+) -> Result<(), std::io::Error> {
+    if !dst.exists() {
+        fs::create_dir(dst)?;
+    }
+    let glob = "**/*";
+    for file in src.find(glob).unwrap() {
+        let dst_path = dst.join(file.path());
+        match file {
+            include_dir::DirEntry::Dir(d) => {
+                fs::create_dir_all(d.path().as_os_str().to_str().unwrap()).unwrap();
+            }
+            include_dir::DirEntry::File(f) => {
+                let file_path = f.path().as_os_str().to_str().unwrap();
+                let file_buf: PathBuf = PathBuf::from_str(file_path).unwrap();
+                if let Some(parent) = file_buf.parent() {
+                    if !parent.exists() {
+                        fs::create_dir_all(parent)?;
+                    }
+                }
+                let _ = create_file(
+                    dst_path.as_os_str().to_str().unwrap(),
+                    f.contents(),
+                    overwrite_all_conflict_files,
+                    ignore_all_conflict_files,
+                );
+            }
+        }
+    }
     Ok(())
 }

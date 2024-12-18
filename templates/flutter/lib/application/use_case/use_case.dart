@@ -14,11 +14,7 @@ final {{ name|camel }}UseCaseProvider =
 );
 
 abstract class {{ name|pascal }}UseCase {
-{%- if is_future_call %}
-  Future<Result<{{ return_type }}, {{ name|pascal }}UseCaseException>> call();
-{%- else %}
-  Result<{{ return_type }}, {{ name|pascal }}UseCaseException> call();
-{%- endif %}
+  Result<void, {{ name|pascal }}UseCaseException> call();
 }
 
 sealed class {{ name|pascal }}UseCaseException implements Exception {}

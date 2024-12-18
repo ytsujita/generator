@@ -9,12 +9,8 @@ pub mod init;
 
 #[derive(thiserror::Error, Debug)]
 pub(crate) enum TerraformCommandError {
-    #[error("OS Error")]
+    #[error("IO Error")]
     IOError(#[from] std::io::Error),
-    #[error("You must set env var: {variable_name:?}")]
-    EnvVarNotFoundError { variable_name: String },
-    #[error("Unknown Error")]
-    UnknownError,
 }
 
 pub(crate) fn command_handler(mode: TerraformMode) {
@@ -25,16 +21,12 @@ pub(crate) fn command_handler(mode: TerraformMode) {
         } => init_terraform_project(overwrite_conflict_files, skip_conflict_config_files),
     };
     match res {
-        Ok(_) => {}
+        Ok(_) => {
+            println!("{}", "completed!".green());
+        }
         Err(ref err) => match err {
             TerraformCommandError::IOError(e) => {
                 eprintln!("{}", format!("IO Error: {:?}", e).red());
-            }
-            TerraformCommandError::EnvVarNotFoundError { .. } => {
-                eprintln!("{}", format!("{}", err).red());
-            }
-            TerraformCommandError::UnknownError => {
-                eprintln!("{}", "Unknown Error".red());
             }
         },
     }
