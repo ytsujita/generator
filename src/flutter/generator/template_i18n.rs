@@ -2,10 +2,8 @@ use change_case::snake_case;
 
 use crate::utils::create_dir;
 
-use super::{
-    config::{NavigationConfig, RoutePathConfig, ShellRoutePathConfig},
-    template_navigation::{get_route_from_config, get_shell_route_from_config},
-};
+use super::super::config::{NavigationConfig, RoutePathConfig, ShellRoutePathConfig};
+use super::template_navigation::{get_route_from_config, get_shell_route_from_config};
 
 pub(crate) fn generate_i18n(
     route_path_config: &NavigationConfig,

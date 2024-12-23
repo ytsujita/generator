@@ -6,12 +6,8 @@ use crate::{FlutterMode, APPLICATION_NAME};
 
 pub mod config;
 pub mod format;
+pub mod generator;
 pub mod init;
-pub mod template;
-pub mod template_i18n;
-pub mod template_navigation;
-pub mod template_use_case;
-pub mod template_widget;
 
 #[derive(thiserror::Error, Debug)]
 pub(crate) enum FlutterCommandError {
@@ -44,7 +40,7 @@ pub(crate) fn command_handler(mode: FlutterMode) {
         FlutterMode::Gen {
             overwrite_conflict_files,
             skip_conflict_files,
-        } => super::flutter::template::generate_files(
+        } => super::flutter::generator::generate_template_files(
             &flutter_config_file_name,
             overwrite_conflict_files,
             skip_conflict_files,

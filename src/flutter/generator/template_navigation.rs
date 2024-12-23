@@ -4,7 +4,7 @@ use crate::flutter::config::{
 use crate::utils::create_file;
 use askama::Template;
 
-use super::config::{DartField, ShellIndexType};
+use super::super::config::{DartField, ShellIndexType};
 
 mod filters {
     use change_case::{camel_case, pascal_case, snake_case};
