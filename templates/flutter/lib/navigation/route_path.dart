@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 {%- for route_path in route_paths -%}
 {%- match route_path.dir_name -%}
 {%- when Some with (dir) %}
-import 'package:{{ application_name|snake }}/widget/page/{{ dir|snake }}/{{ route_path.name|snake }}.dart';
+import 'package:{{ application_name|snake }}/widget/page/{{ dir|snake }}/{{ route_path.name|snake }}_widget.dart';
 {%- when None -%}
-import 'package:{{ application_name|snake }}/widget/page/{{ route_path.name|snake }}.dart';
+import 'package:{{ application_name|snake }}/widget/page/{{ route_path.name|snake }}_widget.dart';
 {%- endmatch -%}
 {% endfor %}
 {%- for route_path in shell_route_paths -%}
 {%- match route_path.dir_name -%}
 {%- when Some with (dir) %}
-import 'package:{{ application_name|snake }}/widget/page/{{ dir|snake }}/{{ route_path.name|snake }}.dart';
+import 'package:{{ application_name|snake }}/widget/page/{{ dir|snake }}/{{ route_path.name|snake }}_shell_widget.dart';
 {%- when None -%}
-import 'package:{{ application_name|snake }}/widget/page/{{ route_path.name|snake }}.dart';
+import 'package:{{ application_name|snake }}/widget/page/{{ route_path.name|snake }}_shell_widget.dart';
 {%- endmatch -%}
 {% endfor %}
 
