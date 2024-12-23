@@ -8,34 +8,8 @@ use std::fmt;
 #[derive(Deserialize, Serialize)]
 pub(crate) struct Config {
     pub(crate) application_name: String,
-    pub(crate) copy_source: Option<Vec<CopySource>>,
     pub(crate) route_path_config: Option<NavigationConfig>,
     pub(crate) application_config: Option<ApplicationConfig>,
-}
-
-#[derive(Deserialize, Serialize)]
-pub(crate) enum CopySource {
-    GitHub(GitHubSource),
-    CodeCommit(CodeCommitSource),
-    Local(LocalSource),
-}
-
-#[derive(Deserialize, Serialize)]
-pub(crate) struct GitHubSource {
-    repository_name: String,
-    path: Vec<String>,
-}
-
-#[derive(Deserialize, Serialize)]
-pub(crate) struct CodeCommitSource {
-    account_id: String,
-    repository_name: String,
-    path: Vec<String>,
-}
-
-#[derive(Deserialize, Serialize)]
-pub(crate) struct LocalSource {
-    path: Vec<String>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -98,16 +72,6 @@ pub(crate) struct RoutePathConfig {
     pub(crate) path_reg_exp: Option<String>,
     pub(crate) fields: Option<Vec<DartField>>,
     pub(crate) children: Option<Vec<RouteConfigType>>,
-}
-
-#[derive(Deserialize, Serialize)]
-pub(crate) struct ProviderConfig {
-    pub(crate) name: String,
-    pub(crate) dir_name: Option<String>,
-    pub(crate) state: DartType,
-    pub(crate) auto_dispose: bool,
-    pub(crate) family_type: Option<DartType>,
-    pub(crate) provider_type: ProviderType,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -610,21 +574,6 @@ pub(crate) fn generate_sample_config(
                 children: None,
             }),
         }),
-        copy_source: Some(vec![
-            CopySource::CodeCommit(CodeCommitSource {
-                account_id: String::from("000000000000"),
-                repository_name: String::from("sample_repository"),
-                path: vec![String::from("lib/domain/")],
-            }),
-            CopySource::GitHub(GitHubSource {
-                repository_name: String::from("sample/sample"),
-                path: vec![
-                    String::from("lib/domain/service/sample"),
-                    String::from("lib/domain/repository/sample.dart"),
-                    String::from("test/domain/repository/sample.dart"),
-                ],
-            }),
-        ]),
     };
     let config_str = serde_yaml::to_string(&config).unwrap();
     create_file(
