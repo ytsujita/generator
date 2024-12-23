@@ -84,13 +84,16 @@ pub(crate) fn init_flutter_app(
 
 fn edit_pubspec_yaml(pubspec_yaml: &mut PubspecYaml) -> Result<(), std::io::Error> {
     pubspec_yaml.flutter.insert("generate", Value::Bool(true));
+    let map: std::collections::HashMap<_, _> =
+        [("sdk", Value::Str("flutter"))].iter().cloned().collect();
+    pubspec_yaml
+        .dev_dependencies
+        .insert("integration_test", Value::HashMap(map.clone()));
     pubspec_yaml.import_sorter = Some(ImportSorter {
         relative: true,
         emojis: false,
         comments: false,
     });
-    let map: std::collections::HashMap<_, _> =
-        [("sdk", Value::Str("flutter"))].iter().cloned().collect();
     pubspec_yaml
         .dependencies
         .insert("flutter_localizations", Value::HashMap(map));
