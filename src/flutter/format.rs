@@ -1,3 +1,4 @@
+use colored::Colorize;
 use regex::Regex;
 use std::fs::{self, File};
 use std::io::Write;
@@ -13,7 +14,7 @@ pub(crate) fn format_import() -> Result<(), FlutterCommandError> {
     if let Err(e) = process_directory(lib_dir, pubspec_yaml.name) {
         eprintln!("Error processing directory: {}", e);
     } else {
-        println!("All imports converted successfully.");
+        println!("{}", "All imports converted successfully.".green());
     }
     Ok(())
 }
