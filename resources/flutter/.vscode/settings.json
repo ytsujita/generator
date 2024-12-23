@@ -53,7 +53,9 @@
 		"service_impl": "controller",
 		"query_use_case_impl": "app",
 		"notifier": "flutter",
-		"state": "container"
+		"state": "container",
+		"goldens": "svg",
+		"unit": "test"
 	},
 	"yaml.customTags": [
 		"!RoutePath",
@@ -62,9 +64,6 @@
 		"!ShellRoute",
 		"!ShellRoute sequence",
 		"!ShellRoute mapping",
-		"!Enum sequence",
-		"!GitHub mapping",
-		"!CodeCommit mapping",
-		"!Local mapping"
+		"!Enum sequence"
 	]
 }
